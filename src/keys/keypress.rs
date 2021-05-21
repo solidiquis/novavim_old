@@ -11,6 +11,7 @@ pub enum SpecialKey {
     Left,
     Right,
     Escape,
+    None
 }
 
 pub fn key_type(bytes: &[u8]) -> KeyPress {
@@ -29,7 +30,7 @@ fn determine_special_key(bytes: &[u8]) -> SpecialKey {
         66 => SpecialKey::Down,
         67 => SpecialKey::Right,
         68 => SpecialKey::Left,
-        _  => SpecialKey::Escape, // Need error.
+        _  => SpecialKey::None,
     }
 }
 

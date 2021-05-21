@@ -1,9 +1,6 @@
 use std::fmt::Display;
+use crate::ansi::ansi_exec;
 
 pub fn screen() {
-    screen_esc(2)
-}
-
-fn screen_esc<T: Display>(cmd: T) {
-    print!("\x1b[{}J", cmd)    
+    ansi_exec::exec(&format!("\x1b[{}J", 2))
 }

@@ -1,7 +1,9 @@
 use std::io;
-use std::io::Read;
+use std::io::{Read, Write};
 
 use crate::keys::keypress::{KeyPress, SpecialKey, key_type};
+
+use crate::ansi::cursor;
 
 pub struct Watcher;
 
@@ -20,24 +22,22 @@ impl Watcher {
             let key_type = key_type(&buffer);
 
             match key_type {
-                KeyPress::Backspace     => println!("Backspace"),
-                KeyPress::Regular       => println!("Regular"),
-                KeyPress::Return        => println!("Return"),
+                KeyPress::Backspace => println!("Backspace"),
+                KeyPress::Regular   => println!("Regular"),
+                KeyPress::Return    => println!("Return"),
 
-                KeyPress::Special(sk)   =>
+                KeyPress::Special(sk) =>
                     match sk {
                         SpecialKey::Escape => println!("ESC!"),
-                        SpecialKey::Up     => println!("Up!"),
-                        SpecialKey::Down   => println!("Down!"),
-                        SpecialKey::Left   => println!("Left!"),
-                        SpecialKey::Right  => println!("Right!"),
-                        _ => println!("Return an error.")
+                        SpecialKey::Up     => cursor::up(1),
+                        SpecialKey::Down   => cursor::down(1),
+                        SpecialKey::Left   => cursor::left(1),
+                        SpecialKey::Right  => cursor::right(1),
+                        _ => ()
                     },
 
-                _ => println!("Return an error.")
+                _ => ()
             }
-
-            println!("You have hit: {:?}", buffer);
 
             // Re-init buffer
             buffer = [0;3];
