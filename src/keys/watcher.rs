@@ -1,6 +1,7 @@
 use std::io;
 use std::io::Read;
-use std::io::Write;
+
+use crate::keys::keypress::{KeyPress, SpecialKey, key_type};
 
 pub struct Watcher;
 
@@ -10,15 +11,36 @@ impl Watcher {
     }
 
     pub fn watch_keypress(&self) {
-        let stdout = io::stdout();
-
         let mut stdin = io::stdin();
-        let mut buffer = [0;1];
+        let mut buffer = [0;3];
 
-        while buffer[0] != 113 {
-            stdout.lock().flush().unwrap();
-            stdin.read_exact(&mut buffer).unwrap();
+        loop {
+            stdin.read(&mut buffer).unwrap();
+
+            let key_type = key_type(&buffer);
+
+            match key_type {
+                KeyPress::Backspace     => println!("Backspace"),
+                KeyPress::Regular       => println!("Regular"),
+                KeyPress::Return        => println!("Return"),
+
+                KeyPress::Special(sk)   =>
+                    match sk {
+                        SpecialKey::Escape => println!("ESC!"),
+                        SpecialKey::Up     => println!("Up!"),
+                        SpecialKey::Down   => println!("Down!"),
+                        SpecialKey::Left   => println!("Left!"),
+                        SpecialKey::Right  => println!("Right!"),
+                        _ => println!("Return an error.")
+                    },
+
+                _ => println!("Return an error.")
+            }
+
             println!("You have hit: {:?}", buffer);
+
+            // Re-init buffer
+            buffer = [0;3];
         }
     }
 }
