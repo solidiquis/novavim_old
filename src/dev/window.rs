@@ -1,4 +1,5 @@
 use crate::utils::{ansi_exec, win};
+use crate::dev::shared::CursorNav;
 
 pub struct Window {
     width: u8,
@@ -16,8 +17,36 @@ impl Default for Window {
     }
 }
 
+impl CursorNav for Window {}
+
 impl Window {
     pub fn clear(&self) {
         ansi_exec::exec(&format!("\x1b[{}J", 2))
+    }
+
+    pub fn init_session(&self) {
+        self.print_mode("NORMAL");
+        self.down(1);
+
+        for _ in 1..self.height-1 {
+            println!("~")
+        }
+
+        self.home();
+    }
+
+    pub fn print_mode(&self, mode: &str) {
+        self.save_cursor_position();
+        self.down(self.height);
+        ansi_exec::bold(mode);
+        self.restore_cursor_position()
+    }
+
+    pub fn get_width(&self) -> u8 {
+        self.width
+    }
+
+    pub fn get_height(&self) -> u8 {
+        self.height
     }
 }

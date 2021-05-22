@@ -2,6 +2,7 @@ use std::io;
 use std::io::Read;
 use crate::utils::keypress::{KeyPress, SpecialKey, key_type};
 use crate::dev::cursor::Cursor;
+use crate::dev::shared::CursorNav;
 
 pub fn watch_keypress(cursor: &Cursor) {
     let mut stdin = io::stdin();

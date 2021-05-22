@@ -3,17 +3,13 @@ use routing::mux;
 
 mod utils;
 use utils::stty;
-//use utils::win;
 
 mod dev;
 use dev::cursor::Cursor;
 use dev::window::Window;
+use dev::shared::CursorNav;
 
 fn main() {
-    //let (row, col) = winsize::get_winsize().unwrap_or_else(|err| {
-        //panic!("{}", err)
-    //});
-
     let cursor = Cursor::default();
     let window = Window::default();
 
@@ -22,6 +18,7 @@ fn main() {
 
     cursor.home();
     window.clear();
+    window.init_session();
 
     mux::watch_keypress(&cursor);
 }
