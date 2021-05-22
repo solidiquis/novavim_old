@@ -1,13 +1,11 @@
-mod ansi;
-use ansi::erase;
-use ansi::cursor;
+mod routing;
+use routing::mux;
 
-mod keys;
-use keys::watcher;
-
-mod win;
-use win::stty;
-use win::winsize;
+mod utils;
+use utils::stty;
+//use utils::win;
+use utils::erase;
+use utils::cursor;
 
 fn main() {
     //let (row, col) = winsize::get_winsize().unwrap_or_else(|err| {
@@ -20,5 +18,5 @@ fn main() {
     cursor::home();
     erase::screen();
 
-    watcher::Watcher::new().watch_keypress();
+    mux::watch_keypress();
 }

@@ -1,4 +1,4 @@
-use crate::ansi::ansi_exec;
+use crate::utils::ansi_exec;
 
 pub fn home() {
     ansi_exec::exec(&"\x1b[H");
