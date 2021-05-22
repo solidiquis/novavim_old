@@ -1,12 +1,9 @@
 use std::io;
 use std::io::Read;
-
 use crate::utils::keypress::{KeyPress, SpecialKey, key_type};
+use crate::dev::cursor::Cursor;
 
-use crate::utils::cursor;
-
-
-pub fn watch_keypress() {
+pub fn watch_keypress(cursor: &Cursor) {
     let mut stdin = io::stdin();
     let mut buffer = [0;3];
 
@@ -23,10 +20,10 @@ pub fn watch_keypress() {
             KeyPress::Special(sk) =>
                 match sk {
                     SpecialKey::Escape => println!("ESC!"),
-                    SpecialKey::Up     => cursor::up(1),
-                    SpecialKey::Down   => cursor::down(1),
-                    SpecialKey::Left   => cursor::left(1),
-                    SpecialKey::Right  => cursor::right(1),
+                    SpecialKey::Up     => cursor.up(1),
+                    SpecialKey::Down   => cursor.down(1),
+                    SpecialKey::Left   => cursor.left(1),
+                    SpecialKey::Right  => cursor.right(1),
                     _ => ()
                 },
         }
