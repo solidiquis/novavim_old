@@ -1,10 +1,8 @@
 // https://unix.superglobalmegacorp.com/Net2/newsrc/sys/ioctl.h.html
 
-#![allow(unstable)]
-
 extern crate libc;
 
-use libc::{c_int, c_ulong, c_ushort, STDOUT_FILENO, TIOCGWINSZ};
+use libc::{c_ushort, STDOUT_FILENO, TIOCGWINSZ};
 use libc::ioctl;
 
 #[repr(C)]

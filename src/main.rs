@@ -1,5 +1,5 @@
 mod routing;
-use routing::mux;
+use routing::mux::Mux;
 
 mod utils;
 use utils::stty;
@@ -10,8 +10,9 @@ use dev::window::Window;
 use dev::shared::CursorNav;
 
 fn main() {
-    let cursor = Cursor::default();
-    let window = Window::default();
+    let cursor  = Cursor::default();
+    let window  = Window::default();
+    let mut mux = Mux::default();
 
     stty::unecho_stdin();
     stty::unbuffer_stdin();
@@ -20,5 +21,5 @@ fn main() {
     window.clear();
     window.init_session();
 
-    mux::watch_keypress(&cursor);
+    mux.watch_keypress();
 }

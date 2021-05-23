@@ -1,19 +1,77 @@
 use std::io;
 use std::io::Read;
-use crate::utils::keypress::{KeyPress, SpecialKey, key_type};
-use crate::dev::cursor::Cursor;
-use crate::dev::shared::CursorNav;
 
-pub fn watch_keypress(cursor: &Cursor) {
-    let mut stdin = io::stdin();
-    let mut buffer = [0;3];
+pub enum Mode {
+    Normal,
+    Insert,
+    Visual
+}
 
-    loop {
-        stdin.read(&mut buffer).unwrap();
+pub enum KeyPress {
+    Regular,
+    Backspace,
+    Return,
+    Special(SpecialKey),
+}
 
-        let key_type = key_type(&buffer);
+pub enum SpecialKey {
+    Up,
+    Down,
+    Left,
+    Right,
+    Escape,
+    None
+}
 
-        match key_type {
+pub fn key_type(bytes: &[u8; 3]) -> KeyPress {
+    match bytes[0] {
+        127 => KeyPress::Backspace,
+        27  => KeyPress::Special(determine_special_key(bytes)),
+        10  => KeyPress::Return,
+        _   => KeyPress::Regular
+    }
+}
+
+fn determine_special_key(bytes: &[u8]) -> SpecialKey {
+    match bytes[2] {
+        0  => SpecialKey::Escape,
+        65 => SpecialKey::Up,
+        66 => SpecialKey::Down,
+        67 => SpecialKey::Right,
+        68 => SpecialKey::Left,
+        _  => SpecialKey::None,
+    }
+}
+
+pub struct Mux {
+    pub mode: Mode,
+    buffer: [u8; 3]
+}
+
+impl Default for Mux {
+    fn default() -> Self {
+        Self {
+            mode: Mode::Normal,
+            buffer: [0; 3]
+        }
+    }
+}
+
+impl Mux {
+    pub fn watch_keypress(&mut self) {
+        let mut stdin = io::stdin();
+        let mut key: KeyPress;
+
+        loop {
+            stdin.read(&mut self.buffer).unwrap();
+            key = key_type(&self.buffer);
+            self.multiplex(&key);
+            self.reinit_buffer()
+        }
+    }
+
+    fn multiplex(&self, key: &KeyPress) {
+        match key {
             KeyPress::Backspace => println!("Backspace"),
             KeyPress::Regular   => println!("Regular"),
             KeyPress::Return    => println!("Return"),
@@ -21,58 +79,16 @@ pub fn watch_keypress(cursor: &Cursor) {
             KeyPress::Special(sk) =>
                 match sk {
                     SpecialKey::Escape => println!("ESC!"),
-                    SpecialKey::Up     => cursor.up(1),
-                    SpecialKey::Down   => cursor.down(1),
-                    SpecialKey::Left   => cursor.left(1),
-                    SpecialKey::Right  => cursor.right(1),
+                    SpecialKey::Up     => println!("Up"),
+                    SpecialKey::Down   => println!("Down"),
+                    SpecialKey::Left   => println!("Left"),
+                    SpecialKey::Right  => println!("Right"),
                     _ => ()
                 },
         }
+    }
 
-        // Re-init buffer
-        buffer = [0;3];
+    fn reinit_buffer(&mut self) {
+        self.buffer = [0; 3]
     }
 }
-
-
-//pub struct Mux;
-
-//impl Mux {
-    //pub fn new() -> Self {
-        //Mux{}
-    //}
-
-    //pub fn watch_keypress(&self) {
-        //let mut stdin = io::stdin();
-        //let mut buffer = [0;3];
-
-        //loop {
-            //stdin.read(&mut buffer).unwrap();
-
-            //let key_type = key_type(&buffer);
-
-            //match key_type {
-                //KeyPress::Backspace => println!("Backspace"),
-                //KeyPress::Regular   => println!("Regular"),
-                //KeyPress::Return    => println!("Return"),
-
-                //KeyPress::Special(sk) =>
-                    //match sk {
-                        //SpecialKey::Escape => println!("ESC!"),
-                        //SpecialKey::Up     => cursor::up(1),
-                        //SpecialKey::Down   => cursor::down(1),
-                        //SpecialKey::Left   => cursor::left(1),
-                        //SpecialKey::Right  => cursor::right(1),
-                        //_ => ()
-                    //},
-
-                //_ => ()
-            //}
-
-            //// Re-init buffer
-            //buffer = [0;3];
-        //}
-    //}
-
-    //fn multiplex(&self, &)
-//}
