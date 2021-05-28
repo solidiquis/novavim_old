@@ -3,15 +3,17 @@ use crate::ctrls::Ctrl;
 use crate::utils::ansi_exec::{echo, backspace};
 use crate::dev::Cursor;
 
-pub struct InsertCtrl {}
+pub struct InsertCtrl<'a> {
+    cursor: &'a Cursor
+}
 
-impl Default for InsertCtrl {
-    fn default() -> Self {
-        Self{}
+impl<'a> InsertCtrl<'a> {
+    pub fn new(cursor: &'a Cursor) -> Self {
+        Self { cursor }
     }
 }
 
-impl Ctrl for InsertCtrl {
+impl Ctrl for InsertCtrl<'_> {
     fn forward_input_to_handler(&self, key: Key) -> Response {
         let response = match key {
             Key::Regular(k) => self.handle_regular_key(k),

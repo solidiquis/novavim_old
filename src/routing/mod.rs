@@ -55,9 +55,9 @@ impl<'a> Mux<'a> {
 
     fn select_ctrl(&self) -> Box<dyn Ctrl> {
         match self.mode {
-            Mode::Normal => Box::new(NormalCtrl::default()),
-            Mode::Insert => Box::new(InsertCtrl::default()),
-            _ => Box::new(NormalCtrl::default())
+            Mode::Normal => Box::new(NormalCtrl::new(self.cursor)),
+            Mode::Insert => Box::new(InsertCtrl::new(self.cursor)),
+            _ => Box::new(NormalCtrl::new(self.cursor))
         }
     }
 }
