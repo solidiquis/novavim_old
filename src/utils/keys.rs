@@ -2,7 +2,7 @@ use crate::models::{Key, SpecialKey};
 
 pub fn key_type(bytes: &[u8; 3]) -> Key {
     match bytes[0] {
-        127 => Key::Backspace,
+        127 => Key::Special(SpecialKey::Backspace),
         27  => Key::Special(determine_special_key(bytes)),
         10  => Key::Return,
         _   => {

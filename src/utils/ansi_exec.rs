@@ -1,9 +1,16 @@
-use std::io;
-use std::io::Write;
+use crate::flush_print;
 
 pub fn exec(ansi_esc: &str) {
-    print!("{}", ansi_esc);
-    io::stdout().flush().unwrap()
+    flush_print!("{}", ansi_esc);
+}
+
+// Alias for exec
+pub fn echo(txt: &str) {
+    exec(txt)
+}
+
+pub fn backspace() {
+    flush_print!("\x08 \x08")
 }
 
 pub fn bold(txt: &str) {
@@ -13,3 +20,4 @@ pub fn bold(txt: &str) {
 pub fn erase_line() {
     exec("\x1b[2K")
 }
+

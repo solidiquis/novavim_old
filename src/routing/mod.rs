@@ -3,22 +3,24 @@ use std::io::Read;
 use crate::ctrls::normal::NormalCtrl;
 use crate::ctrls::insert::InsertCtrl;
 use crate::ctrls::Ctrl;
-use crate::models::{Key, Mode, SpecialKey, Response};
+use crate::models::{Key, Mode, Response};
 use crate::utils;
-use crate::dev::{CursorNav, Window};
+use crate::dev::{Window, Cursor};
 
 
 pub struct Mux<'a> {
     pub mode: Mode,
 
     window: &'a Window,
+    cursor: &'a Cursor,
 }
 
 impl<'a> Mux<'a> {
-    pub fn new(window: &'a Window) -> Self {
+    pub fn new(window: &'a Window, cursor: &'a Cursor) -> Self {
         Self {
             mode: Mode::Normal,
-            window: window,
+            window,
+            cursor,
         }
     }
 

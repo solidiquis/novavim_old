@@ -10,3 +10,4 @@ macro_rules! flush_print {
         }
     }
 }
+

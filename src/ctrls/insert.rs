@@ -1,6 +1,7 @@
 use crate::models::{Key, Mode, SpecialKey, Response};
 use crate::ctrls::Ctrl;
-use crate::flush_print;
+use crate::utils::ansi_exec::{echo, backspace};
+use crate::dev::Cursor;
 
 pub struct InsertCtrl {}
 
@@ -22,14 +23,22 @@ impl Ctrl for InsertCtrl {
     }
 
     fn handle_regular_key(&self, key_press: &str) -> Response {
-        flush_print!("{}", key_press);
+        echo(key_press);
         Response::Ok
     }
 
     fn handle_special_key(&self, key_press: SpecialKey) -> Response {
         match key_press {
-            SpecialKey::Escape => Response::SwitchMode(Mode::Normal),
+            SpecialKey::Escape => {
+
+                Response::SwitchMode(Mode::Normal)
+            },
+            SpecialKey::Backspace => {
+                backspace();
+                Response::Ok
+            },
             _ => Response::Ok
         }
     }
 }
+

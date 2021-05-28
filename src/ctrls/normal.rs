@@ -1,6 +1,5 @@
 use crate::models::{Key, SpecialKey, Mode, Response};
 use crate::ctrls::Ctrl;
-use crate::flush_print;
 
 pub struct NormalCtrl {}
 

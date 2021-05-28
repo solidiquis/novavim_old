@@ -13,7 +13,7 @@ mod models;
 fn main() {
     let cursor  = Cursor::default();
     let window  = Window::default();
-    let mut mux = Mux::new(&window);
+    let mut mux = Mux::new(&window, &cursor);
 
     stty::unecho_stdin();
     stty::unbuffer_stdin();

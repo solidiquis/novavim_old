@@ -2,6 +2,7 @@ pub mod normal;
 pub mod insert;
 
 use crate::models::{Key, Response, SpecialKey};
+use crate::dev::Cursor;
 
 pub trait Ctrl {
     fn forward_input_to_handler(&self, key: Key) -> Response;
