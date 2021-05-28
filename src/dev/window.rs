@@ -1,10 +1,5 @@
 use crate::utils::{ansi_exec, win};
-use crate::dev::shared::CursorNav;
-
-pub struct Window {
-    width: u8,
-    height: u8
-}
+use crate::dev::{Window, CursorNav};
 
 impl Default for Window {
     fn default() -> Self {
@@ -38,6 +33,8 @@ impl Window {
     pub fn print_mode(&self, mode: &str) {
         self.save_cursor_position();
         self.down(self.height);
+        self.left(self.width);
+        ansi_exec::erase_line();
         ansi_exec::bold(mode);
         self.restore_cursor_position()
     }

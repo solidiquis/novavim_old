@@ -1,9 +1,4 @@
-use crate::dev::shared::CursorNav;
-
-pub struct Cursor {
-    col: u8,
-    row: u8
-}
+use crate::dev::{Cursor, CursorNav};
 
 impl Default for Cursor {
     fn default() -> Self {

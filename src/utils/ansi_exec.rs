@@ -10,3 +10,6 @@ pub fn bold(txt: &str) {
     exec(&format!("\x1b[1m{}\x1b[0m", txt))
 }
 
+pub fn erase_line() {
+    exec("\x1b[2K")
+}
