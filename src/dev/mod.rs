@@ -1,44 +1,48 @@
-use crate::utils::ansi_exec;
 use crate::blurses::Blurses;
-
-pub mod cursor;
-pub mod window;
 
 pub struct Window {
     pub blurses: Blurses
 }
 
-pub struct Cursor {
-    col: u8,
-    row: u8
-}
+impl Default for Window {
+    fn default() -> Self {
+        let blurses = Blurses::default();
 
-pub trait CursorNav {
-    fn home(&self) {
-        ansi_exec::exec(&"\x1b[H")
-    }
-
-    fn up(&self, n: u8) {
-        ansi_exec::exec(&format!("\x1b[{}A", n))
-    }
-
-    fn down(&self, n: u8) {
-        ansi_exec::exec(&format!("\x1b[{}B", n))
-    }
-
-    fn right(&self, n: u8) {
-        ansi_exec::exec(&format!("\x1b[{}C", n))
-    }
-
-    fn left(&self, n: u8) {
-        ansi_exec::exec(&format!("\x1b[{}D", n))
-    }
-
-    fn save_cursor_position(&self) {
-        ansi_exec::exec(&format!("\x1b[s"))
-    }
-
-    fn restore_cursor_position(&self) {
-        ansi_exec::exec(&format!("\x1b[u"))
+        Self { blurses }
     }
 }
+
+impl Window {
+    pub fn erase_screen(&self) {
+        self.blurses.erase_screen()
+    }
+
+    pub fn init_session(&self) {
+        self.print_mode("NORMAL");
+        self.blurses.cursor_down(1);
+
+        for _ in 1..self.blurses.get_win_height() - 1 {
+            println!("~")
+        }
+
+        self.blurses.cursor_home();
+    }
+
+    pub fn print_mode(&self, mode: &str) {
+        self.blurses.cursor_save_position();
+        self.blurses.cursor_down(self.blurses.get_win_height());
+        self.blurses.cursor_down(self.blurses.get_win_width());
+        self.blurses.erase_line();
+        self.blurses.display_bold(mode);
+        self.blurses.cursor_restore_position()
+    }
+
+    pub fn get_width(&self) -> u8 {
+        self.blurses.get_win_width()
+    }
+
+    pub fn get_height(&self) -> u8 {
+        self.blurses.get_win_height()
+    }
+}
+

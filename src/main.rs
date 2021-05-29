@@ -5,7 +5,7 @@ mod utils;
 use utils::stty;
 
 mod dev;
-use dev::{Cursor, Window, CursorNav};
+use dev::Window;
 
 mod blurses;
 mod ctrls;
