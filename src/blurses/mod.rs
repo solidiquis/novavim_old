@@ -61,7 +61,16 @@ impl Blurses {
         format!("\x1b[{}{}", x, y)
     }
 
-    pub fn echo(&self, txt: &str) {
+    pub fn echo(&mut self, txt: &str) {
+        // Really have to be careful with null chars because of the way
+        // NovaVim converts the incoming bytes into a utf-8 string.
+
+        // null char i.e. \u{0) are counted when computing length so any
+        // udb with regard to cursor position may be caused by them.
+
+        // Consider trimming \u{0} or even using regex if it becomes a problem.
+        // Maybe even write a test lel.
+        self.inc_cursor_col(txt.len() as u8);
         flush_print!("{}", txt)
     }
 
@@ -118,11 +127,35 @@ impl Blurses {
         self.win_height
     }
 
-   pub fn get_cursor_col(&self) -> u8 {
-       self.cursor_col
-   }
+    pub fn get_win_dimensions(&self) -> (u8, u8) {
+        (self.win_width, self.win_height)
+    }
 
-   pub fn get_cursor_row(&self) -> u8 {
-       self.cursor_row
-   }
+    pub fn get_cursor_col(&self) -> u8 {
+        self.cursor_col
+    }
+
+    pub fn get_cursor_row(&self) -> u8 {
+        self.cursor_row
+    }
+
+    pub fn get_cursor_position(&self) -> (u8, u8) {
+        (self.cursor_col, self.cursor_row)
+    }
+ 
+    fn inc_cursor_col(&mut self, n: u8) {      
+        self.cursor_col += n
+    }
+ 
+    fn dec_cursor_col(&mut self, n: u8) {
+        self.cursor_col -= n
+    }
+ 
+    fn inc_cursor_row(&mut self, n: u8) {
+        self.cursor_row += n                
+    }
+ 
+    fn dec_cursor_row(&mut self, n: u8) {
+        self.cursor_row -= n                
+    }
 }

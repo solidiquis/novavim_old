@@ -3,17 +3,17 @@ use crate::ctrls::Ctrl;
 use crate::dev::Window;
 
 pub struct InsertCtrl<'a> {
-    window: &'a Window
+    window: &'a mut Window
 }
 
 impl<'a> InsertCtrl<'a> {
-    pub fn new(window: &'a Window) -> Self {
+    pub fn new(window: &'a mut Window) -> Self {
         Self { window }
     }
 }
 
 impl Ctrl for InsertCtrl<'_> {
-    fn forward_input_to_handler(&self, key: Key) -> Response {
+    fn forward_input_to_handler(&mut self, key: Key) -> Response {
         let response = match key {
             Key::Regular(k) => self.handle_regular_key(k),
             Key::Special(sk) => self.handle_special_key(sk),
@@ -23,12 +23,12 @@ impl Ctrl for InsertCtrl<'_> {
         response
     }
 
-    fn handle_regular_key(&self, key_press: &str) -> Response {
+    fn handle_regular_key(&mut self, key_press: &str) -> Response {
         self.window.blurses.echo(key_press);
         Response::Ok
     }
 
-    fn handle_special_key(&self, key_press: SpecialKey) -> Response {
+    fn handle_special_key(&mut self, key_press: SpecialKey) -> Response {
         match key_press {
             SpecialKey::Escape => self.handle_escape(),
             SpecialKey::Backspace => self.handle_backspace(),
@@ -40,17 +40,17 @@ impl Ctrl for InsertCtrl<'_> {
 }
 
 impl<'a> InsertCtrl<'a> {
-    fn handle_escape(&self) -> Response {
+    fn handle_escape(&mut self) -> Response {
         self.window.blurses.cursor_left(1);
         Response::SwitchMode(Mode::Normal)
     }
 
-    fn handle_backspace(&self) -> Response {
+    fn handle_backspace(&mut self) -> Response {
         self.window.blurses.backspace();
         Response::Ok
     }
 
-    fn handle_return(&self) -> Response {
+    fn handle_return(&mut self) -> Response {
         // Refactor to once implement cache        
         self.window.blurses.cursor_down(1);
         self.window.blurses.cursor_left(self.window.get_width());

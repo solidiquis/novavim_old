@@ -9,11 +9,11 @@ use crate::dev::Window;
 
 pub struct Mux<'a> {
     pub mode: Mode,
-    window: &'a Window,
+    window: &'a mut Window,
 }
 
 impl<'a> Mux<'a> {
-    pub fn new(window: &'a Window) -> Self {
+    pub fn new(window: &'a mut Window) -> Self {
         Self {
             mode: Mode::Normal,
             window,
@@ -34,9 +34,12 @@ impl<'a> Mux<'a> {
     }
 
     fn multiplex(&mut self, key: Key) {
-        let ctrl = self.select_ctrl();
+        let response;
 
-        let response = ctrl.forward_input_to_handler(key);
+        {
+            let mut ctrl = self.select_ctrl();
+            response = ctrl.forward_input_to_handler(key);
+        }
 
         match response {
             Response::SwitchMode(nm) => self.set_mode(nm),
@@ -49,7 +52,7 @@ impl<'a> Mux<'a> {
         self.mode = new_mode
     }
 
-    fn select_ctrl(&self) -> Box<dyn Ctrl + 'a> {
+    fn select_ctrl(&mut self) -> Box<dyn Ctrl + '_> {
         match self.mode {
             Mode::Normal => Box::new(NormalCtrl::new(self.window)),
             Mode::Insert => Box::new(InsertCtrl::new(self.window)),
