@@ -31,6 +31,8 @@ pub struct Blurses {
     win_height: u8,
     cursor_col: u8,
     cursor_row: u8,
+    saved_cursor_col: u8,
+    saved_cursor_row: u8, 
 }
 
 impl Default for Blurses {
@@ -43,12 +45,16 @@ impl Default for Blurses {
         let win_height = row as u8;
         let cursor_col = 1;
         let cursor_row = 1;
+        let saved_cursor_col = 1;
+        let saved_cursor_row = 1;
 
         Self {
             win_width,
             win_height,
             cursor_col,
-            cursor_row
+            cursor_row,
+            saved_cursor_col,
+            saved_cursor_row
         }
     }
 }
@@ -74,41 +80,52 @@ impl Blurses {
         flush_print!("{}", txt)
     }
 
-    pub fn backspace(&self) {
+    pub fn backspace(&mut self) {
+        self.dec_cursor_col(1);
         flush_print!("\x08 \x08")    
     }
 
-    pub fn cursor_home(&self) {
+    pub fn cursor_home(&mut self) {
+        self.cursor_col = 1;
+        self.cursor_row = 1;
         flush_print!("{}", self.fansi("H", ""))
     }
 
-    pub fn cursor_up(&self, n: u8) {
+    pub fn cursor_up(&mut self, n: u8) {
+        self.inc_cursor_row(n);
         flush_print!("{}", self.fansi(n, "A"))
     }
 
-    pub fn cursor_down(&self, n: u8) {
+    pub fn cursor_down(&mut self, n: u8) {
+        self.dec_cursor_row(n);
         flush_print!("{}", self.fansi(n, "B"))
     }
 
-    pub fn cursor_right(&self, n: u8) {
+    pub fn cursor_right(&mut self, n: u8) {
+        self.inc_cursor_col(n);
         flush_print!("{}", self.fansi(n, "C"))
     }
 
-    pub fn cursor_left(&self, n: u8) {
+    pub fn cursor_left(&mut self, n: u8) {
+        self.dec_cursor_col(n);
         flush_print!("{}", self.fansi(n, "D"))
     }
 
-    pub fn cursor_save_position(&self) {
+    pub fn cursor_save_position(&mut self) {
+        self.saved_cursor_col = self.cursor_col;
+        self.saved_cursor_row = self.cursor_row;
         flush_print!("{}", self.fansi("", "s"))
     }
 
-    pub fn cursor_restore_position(&self) {
+    pub fn cursor_restore_position(&mut self) {
+        self.cursor_col = self.saved_cursor_col;
+        self.cursor_row = self.saved_cursor_row;
         flush_print!("{}", self.fansi("", "u"))
     }
 
-    pub fn display_bold(&self, txt: &str) {
+    pub fn display_bold(&mut self, txt: &str) {
         let ftxt = format!("{}{}", self.fansi("1m", txt), self.fansi("0m", ""));
-        flush_print!("{}", ftxt)
+        self.echo(&ftxt)
     }
 
     pub fn erase_screen(&self) {
@@ -148,6 +165,11 @@ impl Blurses {
     }
  
     fn dec_cursor_col(&mut self, n: u8) {
+        if (self.cursor_col as i16) - (n as i16) < 1 {
+            self.cursor_col = 1;
+            return
+        }
+
         self.cursor_col -= n
     }
  
@@ -156,6 +178,11 @@ impl Blurses {
     }
  
     fn dec_cursor_row(&mut self, n: u8) {
-        self.cursor_row -= n                
+        if (self.cursor_row as i16) - (n as i16) < 1 {
+            self.cursor_row = 1;
+            return
+        }
+
+        self.cursor_row -= n
     }
 }

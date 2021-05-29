@@ -17,7 +17,7 @@ impl Window {
         self.blurses.erase_screen()
     }
 
-    pub fn init_session(&self) {
+    pub fn init_session(&mut self) {
         self.print_mode("NORMAL");
         self.blurses.cursor_down(1);
 
@@ -28,7 +28,7 @@ impl Window {
         self.blurses.cursor_home();
     }
 
-    pub fn print_mode(&self, mode: &str) {
+    pub fn print_mode(&mut self, mode: &str) {
         self.blurses.cursor_save_position();
         self.blurses.cursor_down(self.blurses.get_win_height());
         self.blurses.cursor_left(self.blurses.get_win_width());
