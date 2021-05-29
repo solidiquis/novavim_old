@@ -1,16 +1,15 @@
 use crate::models::{Key, Mode, SpecialKey, Response};
 use crate::ctrls::Ctrl;
 use crate::utils::ansi_exec::{echo, backspace};
-use crate::dev::{Cursor, CursorNav, Window};
+use crate::dev::Window;
 
 pub struct InsertCtrl<'a> {
-    cursor: &'a Cursor,
     window: &'a Window
 }
 
 impl<'a> InsertCtrl<'a> {
-    pub fn new(cursor: &'a Cursor, window: &'a Window) -> Self {
-        Self { cursor, window }
+    pub fn new(window: &'a Window) -> Self {
+        Self { window }
     }
 }
 
@@ -43,7 +42,7 @@ impl Ctrl for InsertCtrl<'_> {
 
 impl<'a> InsertCtrl<'a> {
     fn handle_escape(&self) -> Response {
-        self.cursor.left(1);
+        self.window.blurses.cursor_left(1);
         Response::SwitchMode(Mode::Normal)
     }
 
@@ -54,10 +53,10 @@ impl<'a> InsertCtrl<'a> {
 
     fn handle_return(&self) -> Response {
         // Refactor to once implement cache        
-        self.cursor.down(1);
-        self.cursor.left(self.window.get_width());
+        self.window.blurses.cursor_down(1);
+        self.window.blurses.cursor_left(self.window.get_width());
         echo(" ");
-        self.cursor.left(1);
+        self.window.blurses.cursor_left(1);
         Response::Ok
     }
 }

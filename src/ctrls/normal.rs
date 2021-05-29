@@ -1,15 +1,14 @@
 use crate::models::{Key, SpecialKey, Mode, Response};
 use crate::ctrls::Ctrl;
-use crate::dev::{Cursor, Window};
+use crate::dev::Window;
 
 pub struct NormalCtrl<'a> {
-    cursor: &'a Cursor,
     window: &'a Window
 }
 
 impl<'a> NormalCtrl<'a> {
-    pub fn new(cursor: &'a Cursor, window: &'a Window) -> Self {
-        Self { cursor, window }
+    pub fn new(window: &'a Window) -> Self {
+        Self {  window }
     }
 }
 

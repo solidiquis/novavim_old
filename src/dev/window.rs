@@ -1,49 +1,45 @@
-use crate::utils::{ansi_exec, win};
+use crate::blurses::Blurses;
 use crate::dev::{Window, CursorNav};
+use crate::utils::{ansi_exec, win};
 
 impl Default for Window {
     fn default() -> Self {
-        let (col, row) = win::get_winsize().unwrap();
+        let blurses = Blurses::default();
 
-        let width  = col as u8;
-        let height = row as u8;
-
-        Self { width, height }
+        Self { blurses }
     }
 }
 
-impl CursorNav for Window {}
-
 impl Window {
-    pub fn clear(&self) {
-        ansi_exec::exec(&format!("\x1b[{}J", 2))
+    pub fn erase_screen(&self) {
+        self.blurses.erase_screen()
     }
 
     pub fn init_session(&self) {
         self.print_mode("NORMAL");
-        self.down(1);
+        self.blurses.cursor_down(1);
 
-        for _ in 1..self.height-1 {
+        for _ in 1..self.blurses.get_win_height() - 1 {
             println!("~")
         }
 
-        self.home();
+        self.blurses.cursor_home();
     }
 
     pub fn print_mode(&self, mode: &str) {
-        self.save_cursor_position();
-        self.down(self.height);
-        self.left(self.width);
-        ansi_exec::erase_line();
-        ansi_exec::bold(mode);
-        self.restore_cursor_position()
+        self.blurses.cursor_save_position();
+        self.blurses.cursor_down(self.blurses.get_win_height());
+        self.blurses.cursor_down(self.blurses.get_win_width());
+        self.blurses.erase_line();
+        self.blurses.display_bold(mode);
+        self.blurses.cursor_restore_position()
     }
 
     pub fn get_width(&self) -> u8 {
-        self.width
+        self.blurses.get_win_width()
     }
 
     pub fn get_height(&self) -> u8 {
-        self.height
+        self.blurses.get_win_height()
     }
 }

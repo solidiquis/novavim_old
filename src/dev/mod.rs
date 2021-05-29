@@ -1,11 +1,11 @@
 use crate::utils::ansi_exec;
+use crate::blurses::Blurses;
 
 pub mod cursor;
 pub mod window;
 
 pub struct Window {
-    width: u8,
-    height: u8
+    pub blurses: Blurses
 }
 
 pub struct Cursor {
