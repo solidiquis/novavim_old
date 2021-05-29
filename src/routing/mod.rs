@@ -5,22 +5,18 @@ use crate::ctrls::insert::InsertCtrl;
 use crate::ctrls::Ctrl;
 use crate::models::{Key, Mode, Response};
 use crate::utils;
-use crate::dev::{Window, Cursor};
-
+use crate::dev::Window;
 
 pub struct Mux<'a> {
     pub mode: Mode,
-
     window: &'a Window,
-    cursor: &'a Cursor,
 }
 
 impl<'a> Mux<'a> {
-    pub fn new(window: &'a Window, cursor: &'a Cursor) -> Self {
+    pub fn new(window: &'a Window) -> Self {
         Self {
             mode: Mode::Normal,
             window,
-            cursor,
         }
     }
 
@@ -55,9 +51,9 @@ impl<'a> Mux<'a> {
 
     fn select_ctrl(&self) -> Box<dyn Ctrl + 'a> {
         match self.mode {
-            Mode::Normal => Box::new(NormalCtrl::new(self.cursor, self.window)),
-            Mode::Insert => Box::new(InsertCtrl::new(self.cursor, self.window)),
-            _ => Box::new(NormalCtrl::new(self.cursor, self.window))
+            Mode::Normal => Box::new(NormalCtrl::new(self.window)),
+            Mode::Insert => Box::new(InsertCtrl::new(self.window)),
+            _ => Box::new(NormalCtrl::new(self.window))
         }
     }
 }
