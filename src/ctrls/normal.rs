@@ -1,15 +1,19 @@
 use crate::models::{Key, SpecialKey, Mode, Response};
 use crate::ctrls::Ctrl;
+use crate::dev::{Cursor, Window};
 
-pub struct NormalCtrl {}
+pub struct NormalCtrl<'a> {
+    cursor: &'a Cursor,
+    window: &'a Window
+}
 
-impl Default for NormalCtrl {
-    fn default() -> Self {
-        Self{}
+impl<'a> NormalCtrl<'a> {
+    pub fn new(cursor: &'a Cursor, window: &'a Window) -> Self {
+        Self { cursor, window }
     }
 }
 
-impl Ctrl for NormalCtrl {
+impl Ctrl for NormalCtrl<'_> {
     fn forward_input_to_handler(&self, key: Key) -> Response {
         let response = match key {
             Key::Regular(k) => self.handle_regular_key(k),

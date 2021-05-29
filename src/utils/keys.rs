@@ -4,7 +4,7 @@ pub fn key_type(bytes: &[u8; 3]) -> Key {
     match bytes[0] {
         127 => Key::Special(SpecialKey::Backspace),
         27  => Key::Special(determine_special_key(bytes)),
-        10  => Key::Return,
+        10  => Key::Special(SpecialKey::Return),
         _   => {
             let key = bytes_to_str(bytes).unwrap_or_else(|_| {
                 ""
