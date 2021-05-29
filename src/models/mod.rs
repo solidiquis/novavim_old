@@ -22,7 +22,6 @@ impl Mode {
 pub enum Key<'a> {
     Regular(&'a str),
     Special(SpecialKey),
-    Return,
 }
 
 #[derive(Debug)]
@@ -33,5 +32,6 @@ pub enum SpecialKey {
     Right,
     Escape,
     Backspace,
+    Return,
     None
 }

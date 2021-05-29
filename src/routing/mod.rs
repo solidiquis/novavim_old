@@ -53,11 +53,11 @@ impl<'a> Mux<'a> {
         self.mode = new_mode
     }
 
-    fn select_ctrl(&self) -> Box<dyn Ctrl> {
+    fn select_ctrl(&self) -> Box<dyn Ctrl + 'a> {
         match self.mode {
-            Mode::Normal => Box::new(NormalCtrl::new(self.cursor)),
-            Mode::Insert => Box::new(InsertCtrl::new(self.cursor)),
-            _ => Box::new(NormalCtrl::new(self.cursor))
+            Mode::Normal => Box::new(NormalCtrl::new(self.cursor, self.window)),
+            Mode::Insert => Box::new(InsertCtrl::new(self.cursor, self.window)),
+            _ => Box::new(NormalCtrl::new(self.cursor, self.window))
         }
     }
 }
