@@ -31,7 +31,7 @@ impl Window {
     pub fn print_mode(&self, mode: &str) {
         self.blurses.cursor_save_position();
         self.blurses.cursor_down(self.blurses.get_win_height());
-        self.blurses.cursor_down(self.blurses.get_win_width());
+        self.blurses.cursor_left(self.blurses.get_win_width());
         self.blurses.erase_line();
         self.blurses.display_bold(mode);
         self.blurses.cursor_restore_position()

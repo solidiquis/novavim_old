@@ -1,6 +1,5 @@
 use crate::models::{Key, Mode, SpecialKey, Response};
 use crate::ctrls::Ctrl;
-use crate::utils::ansi_exec::{echo, backspace};
 use crate::dev::Window;
 
 pub struct InsertCtrl<'a> {
@@ -25,7 +24,7 @@ impl Ctrl for InsertCtrl<'_> {
     }
 
     fn handle_regular_key(&self, key_press: &str) -> Response {
-        echo(key_press);
+        self.window.blurses.echo(key_press);
         Response::Ok
     }
 
@@ -47,7 +46,7 @@ impl<'a> InsertCtrl<'a> {
     }
 
     fn handle_backspace(&self) -> Response {
-        backspace();
+        self.window.blurses.backspace();
         Response::Ok
     }
 
@@ -55,7 +54,7 @@ impl<'a> InsertCtrl<'a> {
         // Refactor to once implement cache        
         self.window.blurses.cursor_down(1);
         self.window.blurses.cursor_left(self.window.get_width());
-        echo(" ");
+        self.window.blurses.echo(" ");
         self.window.blurses.cursor_left(1);
         Response::Ok
     }
