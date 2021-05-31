@@ -4,20 +4,17 @@ use routing::Mux;
 mod utils;
 use utils::stty;
 
-mod dev;
-use dev::Window;
-
 mod blurses;
+mod cache;
 mod ctrls;
+mod dev;
 mod models;
 
 fn main() {
-    let mut window = Window::default();
-    window.blurses.cursor_home();
-    window.erase_screen();
-    window.init_session();
-
-    let mut mux = Mux::new(&mut window);
+    let mut mux = Mux::default();
+    mux.window.blurses.cursor_home();
+    mux.window.erase_screen();
+    mux.window.init_session();
 
     stty::unecho_stdin();
     stty::unbuffer_stdin();

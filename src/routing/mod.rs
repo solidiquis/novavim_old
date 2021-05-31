@@ -1,25 +1,35 @@
 use std::io;
 use std::io::Read;
+
+use crate::cache::TextCache;
 use crate::ctrls::normal::NormalCtrl;
 use crate::ctrls::insert::InsertCtrl;
 use crate::ctrls::Ctrl;
+use crate::dev::Window;
 use crate::models::{Key, Mode, Response};
 use crate::utils;
-use crate::dev::Window;
 
-pub struct Mux<'a> {
+pub struct Mux {
     pub mode: Mode,
-    window: &'a mut Window,
+    pub text_cache: TextCache,
+    pub window: Window
 }
 
-impl<'a> Mux<'a> {
-    pub fn new(window: &'a mut Window) -> Self {
+impl Default for Mux {
+    fn default() -> Self {
+        let mut text_cache = TextCache::default();
+        let mut window = Window::default();
+
         Self {
             mode: Mode::Normal,
-            window,
+            text_cache,
+            window
         }
     }
 
+}
+
+impl Mux {
     pub fn watch_and_serve(&mut self) {
         let mut stdin = io::stdin();
         let mut buffer = [0; 3];
@@ -54,9 +64,9 @@ impl<'a> Mux<'a> {
 
     fn select_ctrl(&mut self) -> Box<dyn Ctrl + '_> {
         match self.mode {
-            Mode::Normal => Box::new(NormalCtrl::new(self.window)),
-            Mode::Insert => Box::new(InsertCtrl::new(self.window)),
-            _ => Box::new(NormalCtrl::new(self.window))
+            Mode::Normal => Box::new(NormalCtrl::new(&mut self.window)),
+            Mode::Insert => Box::new(InsertCtrl::new(&mut self.window, &mut self.text_cache)),
+            _ => Box::new(NormalCtrl::new(&mut self.window))
         }
     }
 }

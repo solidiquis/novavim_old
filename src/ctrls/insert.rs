@@ -1,14 +1,16 @@
-use crate::models::{Key, Mode, SpecialKey, Response};
+use crate::cache::TextCache;
 use crate::ctrls::Ctrl;
 use crate::dev::Window;
+use crate::models::{Key, Mode, SpecialKey, Response};
 
 pub struct InsertCtrl<'a> {
+    text_cache: &'a mut TextCache,
     window: &'a mut Window
 }
 
 impl<'a> InsertCtrl<'a> {
-    pub fn new(window: &'a mut Window) -> Self {
-        Self { window }
+    pub fn new(window: &'a mut Window, text_cache: &'a mut TextCache) -> Self {
+        Self { text_cache, window }
     }
 }
 
@@ -24,7 +26,33 @@ impl Ctrl for InsertCtrl<'_> {
     }
 
     fn handle_regular_key(&mut self, key_press: &str) -> Response {
+        let (cu_col, ln_no) = self.window.blurses.get_cursor_position();
+
+        if (self.text_cache.text.len() as u16) < ln_no {
+            self.text_cache.text.push("".to_string())
+        };
+
+        let current_line = &self.text_cache.text[(ln_no - 1) as usize];
+        
+        if cu_col < (current_line.len() as u16) {
+            let lslice = &current_line[0..(cu_col as usize)-1];
+            let rslice = &current_line[(cu_col as usize)-1..current_line.len()];
+            let text_to_cache = format!("{}{}{}", lslice, key_press, rslice);
+
+            self.window.blurses.cursor_save_position();
+            self.window.blurses.echo(key_press);
+            self.window.blurses.echo(rslice);
+            self.window.blurses.cursor_restore_position();
+            self.window.blurses.cursor_right(1);
+
+            self.text_cache.text[(ln_no - 1) as usize] = text_to_cache;
+
+            return Response::Ok
+        }
+
+        self.text_cache.text[(ln_no - 1) as usize].push_str(key_press);
         self.window.blurses.echo(key_press);
+
         Response::Ok
     }
 

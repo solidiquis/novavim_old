@@ -37,11 +37,11 @@ impl Window {
         self.blurses.cursor_restore_position()
     }
 
-    pub fn get_width(&self) -> u8 {
+    pub fn get_width(&self) -> u16 {
         self.blurses.get_win_width()
     }
 
-    pub fn get_height(&self) -> u8 {
+    pub fn get_height(&self) -> u16 {
         self.blurses.get_win_height()
     }
 }
