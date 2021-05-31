@@ -17,8 +17,8 @@ pub struct Mux {
 
 impl Default for Mux {
     fn default() -> Self {
-        let mut text_cache = TextCache::default();
-        let mut window = Window::default();
+        let text_cache = TextCache::default();
+        let window = Window::default();
 
         Self {
             mode: Mode::Normal,
@@ -64,9 +64,9 @@ impl Mux {
 
     fn select_ctrl(&mut self) -> Box<dyn Ctrl + '_> {
         match self.mode {
-            Mode::Normal => Box::new(NormalCtrl::new(&mut self.window)),
+            Mode::Normal => Box::new(NormalCtrl::new(&mut self.window, &mut self.text_cache,)),
             Mode::Insert => Box::new(InsertCtrl::new(&mut self.window, &mut self.text_cache)),
-            _ => Box::new(NormalCtrl::new(&mut self.window))
+            _ => Box::new(NormalCtrl::new(&mut self.window, &mut self.text_cache))
         }
     }
 }

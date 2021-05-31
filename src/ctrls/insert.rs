@@ -13,7 +13,6 @@ impl Ctrl for InsertCtrl<'_> {
         let response = match key {
             Key::Regular(k) => self.handle_regular_key(k),
             Key::Special(sk) => self.handle_special_key(sk),
-            _ => Response::Ok,
         };
 
         response

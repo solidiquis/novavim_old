@@ -111,6 +111,18 @@ impl Blurses {
         flush_print!("{}", self.fansi(n, "D"))
     }
 
+    pub fn cursor_set_col(&mut self, col: u16) {
+        let pos = format!("{};{}", self.get_cursor_row(), col);
+        self.cursor_col = col;
+        flush_print!("{}", self.fansi(&pos, "H"))
+    }
+
+    pub fn cursor_set_row(&mut self, row: u16) {
+        let pos = format!("{};{}", row, self.get_cursor_col());
+        self.cursor_row = row;
+        flush_print!("{}", self.fansi(&pos, "H"))
+    }
+
     pub fn cursor_save_position(&mut self) {
         self.saved_cursor_col = self.cursor_col;
         self.saved_cursor_row = self.cursor_row;

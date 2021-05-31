@@ -6,7 +6,9 @@ pub struct TextCache {
 impl Default for TextCache {
     fn default() -> Self {
         let mut text = Vec::new();
-        let mut history = Vec::new();
+        let history = Vec::new();
+
+        text.push("".to_string());
 
         Self { text, history }
     }
