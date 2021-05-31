@@ -35,13 +35,13 @@ impl Ctrl for InsertCtrl<'_> {
         let current_line = &self.text_cache.text[(ln_no - 1) as usize];
         
         if cu_col < (current_line.len() as u16) {
-            let lslice = &current_line[0..(cu_col as usize)];
-            let rslice = &current_line[(cu_col as usize)..current_line.len()];
-            let text_to_print = format!("{}{}", key_press, rslice);
+            let lslice = &current_line[0..(cu_col as usize)-1];
+            let rslice = &current_line[(cu_col as usize)-1..current_line.len()];
             let text_to_cache = format!("{}{}{}", lslice, key_press, rslice);
 
             self.window.blurses.cursor_save_position();
-            self.window.blurses.echo(&text_to_print);
+            self.window.blurses.echo(key_press);
+            self.window.blurses.echo(rslice);
             self.window.blurses.cursor_restore_position();
             self.window.blurses.cursor_right(1);
 
