@@ -6,12 +6,15 @@ pub struct InsertCtrl<'a> {
     window: &'a mut Window
 }
 
+<<<<<<< Updated upstream
 impl<'a> InsertCtrl<'a> {
     pub fn new(window: &'a mut Window) -> Self {
         Self { window }
     }
 }
 
+=======
+>>>>>>> Stashed changes
 impl Ctrl for InsertCtrl<'_> {
     fn forward_input_to_handler(&mut self, key: Key) -> Response {
         let response = match key {
@@ -40,6 +43,10 @@ impl Ctrl for InsertCtrl<'_> {
 }
 
 impl<'a> InsertCtrl<'a> {
+    pub fn new(window: &'a mut Window, text_cache: &'a mut TextCache) -> Self {
+        Self { text_cache, window }
+    }
+
     fn handle_escape(&mut self) -> Response {
         self.window.blurses.cursor_left(1);
         Response::SwitchMode(Mode::Normal)
