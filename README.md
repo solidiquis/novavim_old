@@ -13,4 +13,4 @@ Cursor movement, text-editing, and terminal ui behaviors are all driven by `blur
 Example flow A:
 
 1. `<i> -> <Mux mode: Normal> -> <Mux mode: Insert>`
-2. `<h> -> <Mux mode: Insert> -> <InsertCtrl> -> Forward to `handle_regular_key` action -> echo character back to user.`
+2. `<h> -> <Mux mode: Insert> -> <InsertCtrl> -> Forward to handle_regular_key action -> echo character back to user.`
