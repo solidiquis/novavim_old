@@ -19,15 +19,15 @@ impl Ctrl for InsertCtrl<'_> {
     }
 
     fn handle_regular_key(&mut self, key_press: &str) -> Response {
-        let (cu_col, ln_no) = self.window.blurses.get_cursor_position();
+        let (cu_col, ln_no) = self.window.get_cursor_position();
 
-        if (self.text_cache.text.len() as u16) < ln_no {
+        if self.text_cache.text.len() < ln_no {
             self.text_cache.text.push("".to_string())
         };
 
         let current_line = &self.text_cache.text[(ln_no - 1) as usize];
         
-        if cu_col < (current_line.len() as u16) {
+        if cu_col < current_line.len() {
             let lslice = &current_line[0..(cu_col as usize)-1];
             let rslice = &current_line[(cu_col as usize)-1..current_line.len()];
             let text_to_cache = format!("{}{}{}", lslice, key_press, rslice);
@@ -43,7 +43,7 @@ impl Ctrl for InsertCtrl<'_> {
             return Response::Ok
         }
 
-        self.text_cache.text[(ln_no - 1) as usize].push_str(key_press);
+        self.text_cache.text[ln_no - 1].push_str(key_press);
         self.window.blurses.echo(key_press);
 
         Response::Ok

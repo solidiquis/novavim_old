@@ -37,20 +37,16 @@ impl Window {
         self.blurses.cursor_restore_position()
     }
 
-    pub fn get_width(&self) -> u16 {
+    pub fn get_width(&self) -> usize {
         self.blurses.get_win_width()
     }
 
-    pub fn get_height(&self) -> u16 {
+    pub fn get_height(&self) -> usize {
         self.blurses.get_win_height()
     }
 
     pub fn get_cursor_position(&self) -> (usize, usize) {
-        let (cursor_col, cursor_row) = self.blurses.get_cursor_position();
-        let col = cursor_col as usize;
-        let row = cursor_row as usize;
-        
-        (col, row)
+        self.blurses.get_cursor_position()
     }
 }
 

@@ -27,12 +27,12 @@ use crate::flush_print;
 use std::fmt::Display;
 
 pub struct Blurses {
-    win_width: u16,
-    win_height: u16,
-    cursor_col: u16,
-    cursor_row: u16,
-    saved_cursor_col: u16,
-    saved_cursor_row: u16, 
+    win_width: usize,
+    win_height: usize,
+    cursor_col: usize,
+    cursor_row: usize,
+    saved_cursor_col: usize,
+    saved_cursor_row: usize, 
 }
 
 impl Default for Blurses {
@@ -41,8 +41,8 @@ impl Default for Blurses {
             panic!("Exiting program with err: {}", err)
         });
 
-        let win_width  = col as u16;
-        let win_height = row as u16;
+        let win_width  = col as usize;
+        let win_height = row as usize;
         let cursor_col = 1;
         let cursor_row = 1;
         let saved_cursor_col = 1;
@@ -76,7 +76,7 @@ impl Blurses {
 
         // Consider trimming \u{0} or even using regex if it becomes a problem.
         // Maybe even write a test lel.
-        self.inc_cursor_col(txt.len() as u16);
+        self.inc_cursor_col(txt.len() as usize);
         flush_print!("{}", txt)
     }
 
@@ -91,35 +91,42 @@ impl Blurses {
         flush_print!("{}", self.fansi("H", ""))
     }
 
-    pub fn cursor_up(&mut self, n: u16) {
+    pub fn cursor_up(&mut self, n: usize) {
         self.inc_cursor_row(n);
         flush_print!("{}", self.fansi(n, "A"))
     }
 
-    pub fn cursor_down(&mut self, n: u16) {
+    pub fn cursor_down(&mut self, n: usize) {
         self.dec_cursor_row(n);
         flush_print!("{}", self.fansi(n, "B"))
     }
 
-    pub fn cursor_right(&mut self, n: u16) {
+    pub fn cursor_right(&mut self, n: usize) {
         self.inc_cursor_col(n);
         flush_print!("{}", self.fansi(n, "C"))
     }
 
-    pub fn cursor_left(&mut self, n: u16) {
+    pub fn cursor_left(&mut self, n: usize) {
         self.dec_cursor_col(n);
         flush_print!("{}", self.fansi(n, "D"))
     }
 
-    pub fn cursor_set_col(&mut self, col: u16) {
+    pub fn cursor_set_col(&mut self, col: usize) {
         let pos = format!("{};{}", self.get_cursor_row(), col);
         self.cursor_col = col;
         flush_print!("{}", self.fansi(&pos, "H"))
     }
 
-    pub fn cursor_set_row(&mut self, row: u16) {
+    pub fn cursor_set_row(&mut self, row: usize) {
         let pos = format!("{};{}", row, self.get_cursor_col());
         self.cursor_row = row;
+        flush_print!("{}", self.fansi(&pos, "H"))
+    }
+
+    pub fn cursor_set_position(&mut self, row: usize, col: usize) {
+        let pos = format!("{};{}", row, col);
+        self.cursor_row = row;
+        self.cursor_col = col;
         flush_print!("{}", self.fansi(&pos, "H"))
     }
 
@@ -148,35 +155,35 @@ impl Blurses {
         flush_print!("{}", self.fansi("2K", ""))
     }
 
-    pub fn get_win_width(&self) -> u16 {
+    pub fn get_win_width(&self) -> usize {
         self.win_width
     }
 
-    pub fn get_win_height(&self) -> u16 {
+    pub fn get_win_height(&self) -> usize {
         self.win_height
     }
 
-    pub fn get_win_dimensions(&self) -> (u16, u16) {
+    pub fn get_win_dimensions(&self) -> (usize, usize) {
         (self.win_width, self.win_height)
     }
 
-    pub fn get_cursor_col(&self) -> u16 {
+    pub fn get_cursor_col(&self) -> usize {
         self.cursor_col
     }
 
-    pub fn get_cursor_row(&self) -> u16 {
+    pub fn get_cursor_row(&self) -> usize {
         self.cursor_row
     }
 
-    pub fn get_cursor_position(&self) -> (u16, u16) {
+    pub fn get_cursor_position(&self) -> (usize, usize) {
         (self.cursor_col, self.cursor_row)
     }
  
-    fn inc_cursor_col(&mut self, n: u16) {      
+    fn inc_cursor_col(&mut self, n: usize) {      
         self.cursor_col += n
     }
  
-    fn dec_cursor_col(&mut self, n: u16) {
+    fn dec_cursor_col(&mut self, n: usize) {
         if (self.cursor_col as i16) - (n as i16) < 1 {
             self.cursor_col = 1;
             return
@@ -185,11 +192,11 @@ impl Blurses {
         self.cursor_col -= n
     }
  
-    fn inc_cursor_row(&mut self, n: u16) {
+    fn inc_cursor_row(&mut self, n: usize) {
         self.cursor_row += n                
     }
  
-    fn dec_cursor_row(&mut self, n: u16) {
+    fn dec_cursor_row(&mut self, n: usize) {
         if (self.cursor_row as i16) - (n as i16) < 1 {
             self.cursor_row = 1;
             return
