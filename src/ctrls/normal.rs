@@ -56,7 +56,8 @@ impl<'a> NormalCtrl<'a> {
 
     fn right_navigation(&mut self, key_press: &str) {
         let (cursor_col, cursor_row) = self.window.get_cursor_position();
-        let current_line = self.text_cache.current_line((cursor_col, cursor_row));
+        let cursor_coords = (cursor_col, cursor_row);
+        let current_line = self.text_cache.current_line(cursor_coords);
 
         match key_press {
             "l" => {
@@ -74,7 +75,7 @@ impl<'a> NormalCtrl<'a> {
                 let mut next_char;
                 let mut whitespace_occurrence = 1;
 
-                if let Ok(ch) = self.text_cache.compute_next_char((cursor_col, cursor_row)) {
+                if let Ok(ch) = self.text_cache.compute_next_char(cursor_coords) {
                     next_char = ch
                 } else {
                     return
@@ -87,7 +88,7 @@ impl<'a> NormalCtrl<'a> {
                 let mut ch_col;
                 let mut ch_row;
 
-                let pair = self.text_cache.next_nth_occurrence_of_char(&' ', whitespace_occurrence, (cursor_col, cursor_row));
+                let pair = self.text_cache.next_nth_occurrence_of_char(&' ', whitespace_occurrence, cursor_coords);
 
                 match pair {
                     Ok(p) => {
@@ -96,7 +97,7 @@ impl<'a> NormalCtrl<'a> {
                     },
                     _ => {
                         ch_row = self.text_cache.line_count();
-                        ch_col = self.text_cache.current_line((cursor_col, cursor_row)).len();
+                        ch_col = self.text_cache.current_line(cursor_coords).len();
                     }
                 }
 
@@ -114,13 +115,13 @@ impl<'a> NormalCtrl<'a> {
                 let mut current_char; 
                 let mut next_char;
 
-                if let Ok(ch) = self.text_cache.compute_current_char((cursor_col, cursor_row)) {
+                if let Ok(ch) = self.text_cache.compute_current_char(cursor_coords) {
                     current_char = ch
                 } else {
                     return
                 };
 
-                if let Ok(ch) = self.text_cache.compute_next_char((cursor_col, cursor_row)) {
+                if let Ok(ch) = self.text_cache.compute_next_char(cursor_coords) {
                     next_char = ch
                 } else {
                     return

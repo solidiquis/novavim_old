@@ -19,17 +19,18 @@ impl Ctrl for InsertCtrl<'_> {
     }
 
     fn handle_regular_key(&mut self, key_press: &str) -> Response {
-        let (cu_col, ln_no) = self.window.get_cursor_position();
+        let (cursor_col, cursor_row) = self.window.get_cursor_position();
+        let cursor_coords = (cursor_col, cursor_row);
 
-        if self.text_cache.text.len() < ln_no {
-            self.text_cache.text.push("".to_string())
+        let current_line = self.text_cache.current_line(cursor_coords).to_string();
+
+        if current_line.len() < cursor_row {
+            self.text_cache.push_str(cursor_row, "")
         };
 
-        let current_line = &self.text_cache.text[(ln_no - 1) as usize];
-        
-        if cu_col < current_line.len() {
-            let lslice = &current_line[0..(cu_col as usize)-1];
-            let rslice = &current_line[(cu_col as usize)-1..current_line.len()];
+        if cursor_col < current_line.len() {
+            let lslice = &current_line[0..(cursor_col-1)];
+            let rslice = &current_line[(cursor_col-1)..current_line.len()];
             let text_to_cache = format!("{}{}{}", lslice, key_press, rslice);
 
             self.window.blurses.cursor_save_position();
@@ -38,12 +39,12 @@ impl Ctrl for InsertCtrl<'_> {
             self.window.blurses.cursor_restore_position();
             self.window.blurses.cursor_right(1);
 
-            self.text_cache.text[(ln_no - 1) as usize] = text_to_cache;
+            self.text_cache.set_line(cursor_row, text_to_cache);
 
             return Response::Ok
         }
 
-        self.text_cache.text[ln_no - 1].push_str(key_press);
+        self.text_cache.push_str(cursor_row, key_press);
         self.window.blurses.echo(key_press);
 
         Response::Ok
@@ -71,15 +72,15 @@ impl<'a> InsertCtrl<'a> {
     }
 
     fn handle_backspace(&mut self) -> Response {
-        let (splice_point, line_number) = self.window.get_cursor_position();
-        let current_line = &self.text_cache.text[line_number - 1];
+        let (cursor_col, cursor_row) = self.window.get_cursor_position();
+        let current_line = self.text_cache.current_line((cursor_col, cursor_row));
 
-        if current_line.len() == 0 || splice_point == 1 {
+        if current_line.len() == 0 || cursor_col == 1 {
             return Response::Ok
         }
 
-        let lslice = &current_line[0..(splice_point - 2)];
-        let rslice = &current_line[(splice_point - 1)..current_line.len()];
+        let lslice = &current_line[0..(cursor_col - 2)];
+        let rslice = &current_line[(cursor_col - 1)..current_line.len()];
 
         self.window.blurses.erase_line();
         self.window.blurses.cursor_set_col(1);
@@ -88,7 +89,7 @@ impl<'a> InsertCtrl<'a> {
         self.window.blurses.echo(rslice);
         self.window.blurses.cursor_restore_position(); 
 
-        self.text_cache.text[line_number - 1] = format!("{}{}", lslice, rslice);
+        self.text_cache.set_line(cursor_row, format!("{}{}", lslice, rslice));
 
         Response::Ok
     }

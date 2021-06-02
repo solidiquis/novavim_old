@@ -3,7 +3,7 @@ pub mod errors;
 use crate::cache::errors::Error;
 
 pub struct TextCache {
-    pub text: Vec<String>,
+    text: Vec<String>,
     pub history: Vec<Vec<String>>
 }
 
@@ -82,5 +82,13 @@ impl TextCache {
 
     pub fn line_count(&self) -> usize {
         self.text.len()
+    }
+
+    pub fn set_line(&mut self, ln_num: usize, txt: String) {
+        self.text[ln_num - 1] = txt
+    }
+
+    pub fn push_str(&mut self, ln_num: usize, txt: &str) {
+        self.text[ln_num - 1].push_str(txt)
     }
 }
