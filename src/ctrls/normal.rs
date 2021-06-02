@@ -59,17 +59,17 @@ impl<'a> NormalCtrl<'a> {
     fn right_navigation(&mut self, key_press: &str) {
         let (cursor_col, cursor_row) = self.window.blurses.get_cursor_position();
         let current_line = &self.text_cache.text[(cursor_row as usize) - 1];
-        let ln_len = current_line.len() as u16;
+        let line_len = current_line.len() as u16;
 
         match key_press {
             "l" => {
-                if cursor_col + 1 <= ln_len {
+                if cursor_col + 1 <= line_len {
                     self.window.blurses.cursor_right(1)    
                 }
             },
 
             "e" => {
-                if current_line.len() == 0 || cursor_col == ln_len {
+                if current_line.len() == 0 || cursor_col == line_len {
                     return
                 }
 

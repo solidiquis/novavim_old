@@ -71,7 +71,25 @@ impl<'a> InsertCtrl<'a> {
     }
 
     fn handle_backspace(&mut self) -> Response {
-        self.window.blurses.backspace();
+        let (splice_point, line_number) = self.window.get_cursor_position();
+        let current_line = &self.text_cache.text[line_number - 1];
+
+        if current_line.len() == 0 || splice_point == 1 {
+            return Response::Ok
+        }
+
+        let lslice = &current_line[0..(splice_point - 2)];
+        let rslice = &current_line[(splice_point - 1)..current_line.len()];
+
+        self.window.blurses.erase_line();
+        self.window.blurses.cursor_set_col(1);
+        self.window.blurses.echo(lslice);
+        self.window.blurses.cursor_save_position();
+        self.window.blurses.echo(rslice);
+        self.window.blurses.cursor_restore_position(); 
+
+        self.text_cache.text[line_number - 1] = format!("{}{}", lslice, rslice);
+
         Response::Ok
     }
 
