@@ -91,4 +91,16 @@ impl TextCache {
     pub fn push_str(&mut self, ln_num: usize, txt: &str) {
         self.text[ln_num - 1].push_str(txt)
     }
+
+    pub fn new_line(&mut self, cursor_pos: (usize, usize)) {
+        let (_, cursor_row) = cursor_pos;
+
+        self.text.insert(cursor_row, "".to_string())
+    }
+
+    pub fn new_line_with_text(&mut self, txt: &str, cursor_pos: (usize, usize)) {
+        let (_, cursor_row) = cursor_pos;
+
+        self.text.insert(cursor_row, txt.to_string())
+    }
 }

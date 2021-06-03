@@ -92,12 +92,12 @@ impl Blurses {
     }
 
     pub fn cursor_up(&mut self, n: usize) {
-        self.inc_cursor_row(n);
+        self.dec_cursor_row(n);
         flush_print!("{}", self.fansi(n, "A"))
     }
 
     pub fn cursor_down(&mut self, n: usize) {
-        self.dec_cursor_row(n);
+        self.inc_cursor_row(n);
         flush_print!("{}", self.fansi(n, "B"))
     }
 
@@ -153,6 +153,10 @@ impl Blurses {
 
     pub fn erase_line(&self) {
         flush_print!("{}", self.fansi("2K", ""))
+    }
+
+    pub fn erase_to_end_of_line(&self) {
+        flush_print!("{}", self.fansi("", "K"))
     }
 
     pub fn get_win_width(&self) -> usize {

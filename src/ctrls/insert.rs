@@ -73,7 +73,8 @@ impl<'a> InsertCtrl<'a> {
 
     fn handle_backspace(&mut self) -> Response {
         let (cursor_col, cursor_row) = self.window.get_cursor_position();
-        let current_line = self.text_cache.current_line((cursor_col, cursor_row));
+        let cursor_coords = (cursor_col, cursor_row);
+        let current_line = self.text_cache.current_line(cursor_coords).to_string();
 
         if current_line.len() == 0 || cursor_col == 1 {
             return Response::Ok
@@ -95,11 +96,20 @@ impl<'a> InsertCtrl<'a> {
     }
 
     fn handle_return(&mut self) -> Response {
-        // Refactor to once implement cache        
+        let (cursor_col, cursor_row) = self.window.get_cursor_position();
+        let cursor_coords = (cursor_col, cursor_row);
+        let current_line = self.text_cache.current_line(cursor_coords).to_string();
+        let mut rslice = &current_line[(cursor_col - 1)..current_line.len()].trim_start();
+
+        self.text_cache.new_line_with_text(rslice, cursor_coords);
+
+        self.window.blurses.erase_to_end_of_line();
         self.window.blurses.cursor_down(1);
         self.window.blurses.cursor_left(self.window.get_width());
         self.window.blurses.echo(" ");
-        self.window.blurses.cursor_left(1);
+        self.window.blurses.echo(rslice);
+        self.window.blurses.cursor_left(self.window.get_width());
+
         Response::Ok
     }
 }

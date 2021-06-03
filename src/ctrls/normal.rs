@@ -72,7 +72,7 @@ impl<'a> NormalCtrl<'a> {
                     return
                 }
 
-                let mut next_char;
+                let next_char;
                 let mut whitespace_occurrence = 1;
 
                 if let Ok(ch) = self.text_cache.compute_next_char(cursor_coords) {
@@ -85,8 +85,8 @@ impl<'a> NormalCtrl<'a> {
                     whitespace_occurrence += 1;    
                 }                 
 
-                let mut ch_col;
-                let mut ch_row;
+                let ch_col;
+                let ch_row;
 
                 let pair = self.text_cache.next_nth_occurrence_of_char(&' ', whitespace_occurrence, cursor_coords);
 
@@ -106,14 +106,15 @@ impl<'a> NormalCtrl<'a> {
 
             "e" => {
                 // Todo: add logic to traverse all lines
+                // underscores.. lol
 
                 if current_line.len() == 0 || cursor_col == current_line.len() {
                     return
                 }
 
                 let mut last_alphanumeric_index = 0;
-                let mut current_char; 
-                let mut next_char;
+                let current_char; 
+                let next_char;
 
                 if let Ok(ch) = self.text_cache.compute_current_char(cursor_coords) {
                     current_char = ch
