@@ -88,12 +88,17 @@ impl<'a> NormalCtrl<'a> {
                 let ch_col;
                 let ch_row;
 
-                let pair = self.text_cache.next_nth_occurrence_of_char(&' ', whitespace_occurrence, cursor_coords);
+                let coords = self.text_cache.next_nth_occurrence_of_char(&' ', whitespace_occurrence, cursor_coords);
 
-                match pair {
+                match coords {
                     Ok(p) => {
-                        ch_col = p.0;
-                        ch_row = p.1;
+                        if p.1 > cursor_col {
+                            ch_col = current_line.len();
+                            ch_row = p.1;
+                        } else {
+                            ch_col = p.0;
+                            ch_row = p.1;
+                        }
                     },
                     _ => {
                         ch_row = self.text_cache.line_count();
