@@ -48,5 +48,9 @@ impl Window {
     pub fn get_cursor_position(&self) -> (usize, usize) {
         self.blurses.get_cursor_position()
     }
+
+    pub fn cursor_set_position(&mut self, cursor_coords: (usize, usize)) {
+        self.blurses.cursor_set_position(cursor_coords.1, cursor_coords.0)
+    }
 }
 

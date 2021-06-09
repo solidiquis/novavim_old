@@ -110,60 +110,36 @@ impl<'a> NormalCtrl<'a> {
             },
 
             "e" => {
-                // Todo: add logic to traverse all lines
-                // underscores.. lol
+                let (cursor_col, cursor_row) = self.window.get_cursor_position();
+                let cursor_coords = (cursor_col, cursor_row);
 
-                if current_line.len() == 0 || cursor_col == current_line.len() {
-                    return
+                let current_char = 
+                    if let Ok(ch) = self.text_cache.compute_current_char(cursor_coords) {
+                        ch
+                    } else {
+                        return
+                    };
+
+                let next_char = 
+                    if let Ok(ch) = self.text_cache.compute_next_char(cursor_coords) {
+                        ch
+                    } else {
+                        return
+                    };
+ 
+                // When current char is alphanumeric or underscore and next char is also
+                // alphanumeric or underscore.
+                // jump to last alphanumeric immediately preceding a non-alphanumeric
+                if self.text_cache.is_word_char(&current_char) && self.text_cache.is_word_char(&next_char) {
+                    let new_cursor_position = 
+                        if let Ok(c) = self.text_cache.re_first_match_position(r"\w{1}\b", cursor_coords) {
+                            c
+                        } else {
+                            self.text_cache.last_char_position() 
+                        };
+
+                    self.window.cursor_set_position(new_cursor_position)
                 }
-
-                let mut last_alphanumeric_index = 0;
-                let current_char; 
-                let next_char;
-
-                if let Ok(ch) = self.text_cache.compute_current_char(cursor_coords) {
-                    current_char = ch
-                } else {
-                    return
-                };
-
-                if let Ok(ch) = self.text_cache.compute_next_char(cursor_coords) {
-                    next_char = ch
-                } else {
-                    return
-                };
-
-                let start;
-
-                // Order matters.
-                if current_char == ' ' {
-                    start = cursor_col
-                } else if next_char == ' ' {
-                    start = cursor_col + 1
-                } else if !next_char.is_alphanumeric() {
-                    self.window.blurses.cursor_right(1);
-                    return
-                } else if !current_char.is_alphanumeric() {
-                    start = cursor_col + 1
-                } else {
-                    start = cursor_col - 1
-                }
-
-                for i in start..current_line.len() {
-                    let ch = current_line.chars().nth(i).unwrap();
-
-                    if i == current_line.len() - 1 {
-                        last_alphanumeric_index = i;
-                        break;
-                    }
-
-                    if !ch.is_alphanumeric() {
-                        last_alphanumeric_index = i - 1;
-                        break;
-                    }
-                }
-
-                self.window.blurses.cursor_set_col(last_alphanumeric_index + 1)
             }
 
             _ => ()

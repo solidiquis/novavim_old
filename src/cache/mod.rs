@@ -1,6 +1,7 @@
 pub mod errors;
 
 use crate::cache::errors::Error;
+use regex::Regex;
 
 pub struct TextCache {
     text: Vec<String>,
@@ -58,7 +59,9 @@ impl TextCache {
     }
 
     pub fn compute_next_char(&self, cursor_pos: (usize, usize)) -> Result<char, Error> {
+        // TODO: This gotta span lines
         let (cursor_col, cursor_row) = cursor_pos;
+
         let mut line_number = cursor_row - 1;
         let mut current_line = &self.text[line_number];
 
@@ -66,7 +69,7 @@ impl TextCache {
             line_number += 1
         }
 
-        if line_number > self.line_count() {
+        if line_number > self.line_count() - 1 {
             return Err(Error::CharNotFound)
         }
 
@@ -110,5 +113,47 @@ impl TextCache {
         let (_, cursor_row) = cursor_pos;
 
         self.text.insert(cursor_row, txt.to_string())
+    }
+
+    pub fn is_word_char(&self, ch: &char) -> bool {
+        *ch == '_' || ch.is_alphanumeric()
+    }
+
+    pub fn last_char_position(&self) -> (usize, usize) {
+        let row = self.line_count();
+        let col = self.get_line(row).len();
+
+        (col, row)
+    }
+
+    pub fn re_first_match_position(&self, pattern: &str, cursor_pos: (usize, usize)) -> Result<(usize, usize), Error> {
+        let (cursor_col, cursor_row) = cursor_pos;
+        let mut line_num = cursor_row;
+        let line_count = self.line_count();
+
+        let re = Regex::new(pattern).unwrap();
+
+        let line = self.current_line(cursor_pos);
+        let mut current = &line[(cursor_col - 1)..line.len()];
+
+        loop {
+            let m = re.find(current);
+            match m {
+                Some(t) => {
+                    let normalized_col = t.start() + &line[0..cursor_col].len();
+
+                    return Ok((normalized_col, line_num))
+                },
+                None => {
+                    if line_num + 1 > line_count {
+                        break
+                    }
+                    line_num += 1;
+                    current = self.get_line(line_num)
+                }
+            }
+        }
+
+        Err(Error::PatternNotFound)
     }
 }
