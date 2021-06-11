@@ -1,3 +1,4 @@
+mod tests;
 pub mod errors;
 
 use crate::cache::errors::Error;
@@ -19,8 +20,14 @@ impl Default for TextCache {
     }
 }
 
+// Methods that compute position of characters return cursor coordinates (1-based).
 impl TextCache {
+    pub fn new(text: Vec<String>, history: Vec<Vec<String>>) -> Self {
+        Self { text, history }        
+    }
+
     pub fn next_nth_occurrence_of_char(&self, ch: &char, n: usize, cursor_pos: (usize, usize)) -> Result<(usize, usize), Error> {
+        // Does not include current focused character.
         let (cursor_col, cursor_row) = cursor_pos;
         let mut char_index = cursor_col;
 
@@ -33,7 +40,7 @@ impl TextCache {
 
                 if m == *ch {
                     if occurrence == n  {
-                        return Ok((j, cursor_row))
+                        return Ok((j + 1, i + 1))
                     }
 
                     occurrence += 1
@@ -155,5 +162,10 @@ impl TextCache {
         }
 
         Err(Error::PatternNotFound)
+    }
+
+    pub fn is_match(&self, text: &str, pattern: &str) -> bool {
+        let re = Regex::new(pattern).unwrap();
+        re.is_match(text)
     }
 }

@@ -20,7 +20,7 @@ impl Ctrl for NormalCtrl<'_> {
 
     fn handle_regular_key(&mut self, key_press: &str) -> Response {
         match key_press {
-            "i" => Response::SwitchMode(Mode::Insert),
+            "i" | "I" | "a" | "A" | "o" | "O" => self.insert_mode(key_press),
              _ => self.handle_navigation(key_press),
         }
     }
@@ -33,6 +33,23 @@ impl Ctrl for NormalCtrl<'_> {
 impl<'a> NormalCtrl<'a> {
     pub fn new(window: &'a mut Window, text_cache: &'a mut TextCache) -> Self {
         Self { text_cache, window }
+    }
+
+    pub fn insert_mode(&mut self, key_press: &str) -> Response {
+        match key_press {
+            "a" => self.window.blurses.cursor_right(1),
+
+            "A" => {
+                let cursor_coords = self.window.get_cursor_position();
+                let line_len = self.text_cache.current_line(cursor_coords).len();
+
+                self.window.blurses.cursor_set_col(line_len + 1)
+            },
+
+            "i" | _ => ()
+        }
+
+        Response::SwitchMode(Mode::Insert)
     }
 
     pub fn handle_navigation(&mut self, key_press: &str) -> Response {
@@ -140,9 +157,9 @@ impl<'a> NormalCtrl<'a> {
 
                     self.window.cursor_set_position(new_cursor_position)
 
-                // When current char is whitespace,
-                // jump to the next word character immediate preceding a non-word character.
-                } else if current_char == '_' {
+                // When current char is whitespace or a non-word character,
+                // jump to the next character immediately preceding a whitespace.
+                } else if self.text_cache.is_match(&current_char.to_string(), r"[^0-9A-Za-z_]") {
                     let new_cursor_position = 
                         if let Ok(c) = self.text_cache.re_first_match_position(r"\w{1}\b", (cursor_col + 1, cursor_row)) {
                             c
@@ -153,7 +170,7 @@ impl<'a> NormalCtrl<'a> {
                     self.window.cursor_set_position(new_cursor_position)
                 }
 
-            }
+            },
 
             _ => ()
         }
