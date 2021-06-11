@@ -126,10 +126,10 @@ impl<'a> NormalCtrl<'a> {
                     } else {
                         return
                     };
- 
-                // When current char is alphanumeric or underscore and next char is also
-                // alphanumeric or underscore.
-                // jump to last alphanumeric immediately preceding a non-alphanumeric
+
+                // Word character = [a-zA-Z_]
+                // When current char is a word character and next char is also a word character,
+                // jump to the next word character immediately preceding a non-word character.
                 if self.text_cache.is_word_char(&current_char) && self.text_cache.is_word_char(&next_char) {
                     let new_cursor_position = 
                         if let Ok(c) = self.text_cache.re_first_match_position(r"\w{1}\b", cursor_coords) {
@@ -139,7 +139,20 @@ impl<'a> NormalCtrl<'a> {
                         };
 
                     self.window.cursor_set_position(new_cursor_position)
+
+                // When current char is whitespace,
+                // jump to the next word character immediate preceding a non-word character.
+                } else if current_char == '_' {
+                    let new_cursor_position = 
+                        if let Ok(c) = self.text_cache.re_first_match_position(r"\w{1}\b", (cursor_col + 1, cursor_row)) {
+                            c
+                        } else {
+                            self.text_cache.last_char_position() 
+                        };
+
+                    self.window.cursor_set_position(new_cursor_position)
                 }
+
             }
 
             _ => ()

@@ -59,23 +59,22 @@ impl TextCache {
     }
 
     pub fn compute_next_char(&self, cursor_pos: (usize, usize)) -> Result<char, Error> {
-        // TODO: This gotta span lines
         let (cursor_col, cursor_row) = cursor_pos;
+        let current_line = self.current_line(cursor_pos);
+        let current_line_index = cursor_row - 1;
 
-        let mut line_number = cursor_row - 1;
-        let mut current_line = &self.text[line_number];
+        if cursor_col < current_line.len() {
+            return Ok(current_line.chars().nth(cursor_col - 1).unwrap())
 
-        if cursor_col == current_line.len() {
-            line_number += 1
-        }
+        } else if cursor_col == current_line.len() {
+            if cursor_row < self.line_count() {
+                let next_line = self.get_line(current_line_index + 1);
 
-        if line_number > self.line_count() - 1 {
-            return Err(Error::CharNotFound)
-        }
-
-        current_line = &self.text[line_number];
-
-        Ok(current_line.chars().nth(cursor_col).unwrap())
+                return Ok(next_line.chars().nth(0).unwrap())
+            }
+        } 
+            
+        return Err(Error::EndOfText)
     }
 
     pub fn current_line(&self, cursor_pos: (usize, usize)) -> &str {
@@ -127,6 +126,7 @@ impl TextCache {
     }
 
     pub fn re_first_match_position(&self, pattern: &str, cursor_pos: (usize, usize)) -> Result<(usize, usize), Error> {
+        // This includes the current focused character.
         let (cursor_col, cursor_row) = cursor_pos;
         let mut line_num = cursor_row;
         let line_count = self.line_count();
