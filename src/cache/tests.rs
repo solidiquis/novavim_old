@@ -82,3 +82,33 @@ fn test_re_first_match_position() {
     pos = cache.re_first_match_position(re, cursor).unwrap();
     assert_eq!(pos, (1, 2));
 }
+
+
+#[test]
+fn test_compute_next_char() {
+    let cache = init_cache();
+    let mut blurses = init_blurses();
+    let mut cursor = blurses.get_cursor_position();
+
+    let mut next_char = cache.compute_next_char(cursor).unwrap();
+    assert_eq!(next_char, ' ');
+
+    blurses.cursor_set_position(1, cache.get_line(1).len());
+    cursor = blurses.get_cursor_position();
+    assert_eq!(cursor, (38, 1));
+
+    next_char = cache.compute_next_char(cursor).unwrap();
+    assert_eq!(next_char, 'W');
+
+    let line_count = cache.line_count();
+
+    blurses.cursor_set_position(line_count, cache.get_line(line_count).len());
+    cursor = blurses.get_cursor_position();
+    assert_eq!(cursor, (38, 5));
+
+    let err = cache.compute_next_char(cursor);
+    match err {
+        Err(e) => assert_eq!(e, Error::EndOfText),
+        _ => ()
+    }
+}

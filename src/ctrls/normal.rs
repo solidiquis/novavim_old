@@ -130,46 +130,91 @@ impl<'a> NormalCtrl<'a> {
                 let (cursor_col, cursor_row) = self.window.get_cursor_position();
                 let cursor_coords = (cursor_col, cursor_row);
 
-                let current_char = 
-                    if let Ok(ch) = self.text_cache.compute_current_char(cursor_coords) {
-                        ch
-                    } else {
-                        return
-                    };
+                let current_char = self.text_cache
+                    .compute_current_char(cursor_coords)
+                    .unwrap();
 
-                let next_char = 
-                    if let Ok(ch) = self.text_cache.compute_next_char(cursor_coords) {
-                        ch
-                    } else {
-                        return
-                    };
+                let next_char = self.text_cache
+                    .compute_next_char(cursor_coords)
+                    .unwrap();
+
+                let mut new_cursor_position = self.text_cache.last_char_position();
+
+                if self.text_cache.is_word_char(&current_char) {
+
+                    if self.text_cache.is_word_char(&next_char) {
+                        let res = self.text_cache.re_first_match_position(TextCache::NON_WORDCHAR, cursor_coords);
+
+                        match res {
+                            Ok(c) => new_cursor_position = c,
+                            _ => ()
+                        }
+
+                    } else if next_char == ' ' {
+                        // Need to do some fancy distance comparison to see if we hit char before
+                        // whitespace first or nonword char
+                        let res = self.text_cache.re_first_match_position(TextCache::NON_WHITESPACE, cursor_coords);
+                        
+                        match res {
+                            Ok(c) => new_cursor_position = c,
+                            _ => ()
+                        }
+                    }
+                }
+
+                self.window.cursor_set_position(new_cursor_position)
 
                 // Word character = [a-zA-Z_]
                 // When current char is a word character and next char is also a word character,
                 // jump to the next word character immediately preceding a non-word character.
-                if self.text_cache.is_word_char(&current_char) && self.text_cache.is_word_char(&next_char) {
-                    let new_cursor_position = 
-                        if let Ok(c) = self.text_cache.re_first_match_position(r"\w{1}\b", cursor_coords) {
-                            c
-                        } else {
-                            self.text_cache.last_char_position() 
-                        };
+                //if self.text_cache.is_word_char(&current_char) && self.text_cache.is_word_char(&next_char) {
+                    //let new_cursor_position = 
+                        //if let Ok(c) = self.text_cache.re_first_match_position(r"\w{1}\b", cursor_coords) {
+                            //c
+                        //} else {
+                            //self.text_cache.last_char_position() 
+                        //};
 
-                    self.window.cursor_set_position(new_cursor_position)
+                    //self.window.cursor_set_position(new_cursor_position)
 
-                // When current char is whitespace or a non-word character,
-                // jump to the next character immediately preceding a whitespace.
-                } else if self.text_cache.is_match(&current_char.to_string(), r"[^0-9A-Za-z_]") {
-                    let new_cursor_position = 
-                        if let Ok(c) = self.text_cache.re_first_match_position(r"\w{1}\b", (cursor_col + 1, cursor_row)) {
-                            c
-                        } else {
-                            self.text_cache.last_char_position() 
-                        };
+                //// When current char is whitespace or a non-word character,
+                //// go to the next char preceding a whitespace, or EOL.
+                //} else if self.text_cache.is_match(&current_char.to_string(), r"[^0-9A-Za-z_]{1}") {
+                    //let new_cursor_position = 
+                        //if let Ok(c) = self.text_cache.re_first_match_position(r"[^ ]{1}\s+", (cursor_col + 1, cursor_row)) {
+                            //c
+                        //} else {
+                            //self.text_cache.last_char_position() 
+                        //};
 
-                    self.window.cursor_set_position(new_cursor_position)
-                }
+                    //self.window.cursor_set_position(new_cursor_position)
+                
+                //// When next character is a non-word, non-whitespace character
+                //// jump to the next non-word, non-whitespace char preceding a whitespace or word
+                //// char.
+                //} else if self.text_cache.is_match(&next_char.to_string(), r"[^0-9A-Za-z_ ]{1}") {
+                    //let new_cursor_position = 
+                        //if let Ok(c) = self.text_cache.re_first_match_position(r"[^0-9A-Za-z_ ]{1}[0-9A-Za-z_ ]{1}", (cursor_col + 1, cursor_row)) {
+                            //c
+                        //} else {
+                            //self.text_cache.last_char_position() 
+                        //};
 
+                    //self.window.cursor_set_position(new_cursor_position)
+
+                //// When next character is whitespace or non-word character
+                //// jump to the next character immediately preceding a whitespace or EOL.
+                //} else if self.text_cache.is_match(&next_char.to_string(), r"[^0-9A-Za-z_]{1}") {
+                    //let new_cursor_position = 
+                        //if let Ok(c) = self.text_cache.re_first_match_position(r"\w{1}\s+", (cursor_col + 1, cursor_row)) {
+                            //c
+                        //} else {
+                            //self.text_cache.last_char_position() 
+                        //};
+
+                    //self.window.cursor_set_position(new_cursor_position)
+                    
+                //}
             },
 
             _ => ()

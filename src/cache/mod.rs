@@ -66,16 +66,17 @@ impl TextCache {
     }
 
     pub fn compute_next_char(&self, cursor_pos: (usize, usize)) -> Result<char, Error> {
+        // Does not include current focused character.
+
         let (cursor_col, cursor_row) = cursor_pos;
         let current_line = self.current_line(cursor_pos);
-        let current_line_index = cursor_row - 1;
 
         if cursor_col < current_line.len() {
-            return Ok(current_line.chars().nth(cursor_col - 1).unwrap())
+            return Ok(current_line.chars().nth(cursor_col).unwrap())
 
         } else if cursor_col == current_line.len() {
             if cursor_row < self.line_count() {
-                let next_line = self.get_line(current_line_index + 1);
+                let next_line = self.get_line(cursor_row + 1);
 
                 return Ok(next_line.chars().nth(0).unwrap())
             }
@@ -132,6 +133,12 @@ impl TextCache {
         (col, row)
     }
 
+    // Common regex patterns used in re_first_match_position.
+    // Example: NON_WHITESPACE matches a-zA-Z immediately
+    // preceding a non-whitespace character.
+    pub const NON_WHITESPACE: &'static str = r"\w{1}[^ ]{1}";
+    pub const NON_WORDCHAR:   &'static str = r"\w{1}[^0-9A-Za-z_]{1}";
+
     pub fn re_first_match_position(&self, pattern: &str, cursor_pos: (usize, usize)) -> Result<(usize, usize), Error> {
         // This includes the current focused character.
         let (cursor_col, cursor_row) = cursor_pos;
@@ -168,4 +175,6 @@ impl TextCache {
         let re = Regex::new(pattern).unwrap();
         re.is_match(text)
     }
+
+    //pub fn distance_to_pattern_from_cursor
 }
