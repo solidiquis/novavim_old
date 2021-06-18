@@ -6,7 +6,7 @@ fn init_cache() -> TextCache {
     let mut text = Vec::new();
     text.push("I have seen the dark universe yawning;".to_string());
     text.push("Where, the black_planets roll.. without aim.".to_string());
-    text.push("Where they,,roll in their horro unheeded".to_string());
+    text.push("Where they,,roll in their horror unheeded".to_string());
     text.push("Without knowledge, or lustre, or_name.".to_string());
     text.push("                      - H.P. Lovecraft".to_string());
 
@@ -109,6 +109,24 @@ fn test_compute_next_char() {
     let err = cache.compute_next_char(cursor);
     match err {
         Err(e) => assert_eq!(e, Error::EndOfText),
+        _ => ()
+    }
+}
+
+
+#[test]
+fn test_distance_to_pattern_from_cursor() {
+    let cache = init_cache();
+    let mut blurses = init_blurses();
+    let cursor = blurses.get_cursor_position();
+    let dist_a = cache.distance_to_pattern_from_cursor(r"dark", cursor).unwrap();
+    let dist_b = cache.distance_to_pattern_from_cursor(r"horror", cursor).unwrap();
+
+    assert_eq!(dist_a < dist_b, true);
+    
+    let dist_c = cache.distance_to_pattern_from_cursor(r"blessed_dude_bro", cursor);
+    match dist_c {
+        Err(e) => assert_eq!(e, Error::PatternNotFound),
         _ => ()
     }
 }

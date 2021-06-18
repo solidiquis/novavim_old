@@ -143,7 +143,7 @@ impl<'a> NormalCtrl<'a> {
                 if self.text_cache.is_word_char(&current_char) {
 
                     if self.text_cache.is_word_char(&next_char) {
-                        let res = self.text_cache.re_first_match_position(TextCache::NON_WORDCHAR, cursor_coords);
+                        let res = self.text_cache.re_first_match_position(TextCache::NON_WORDCHAR_BOUNDARY, cursor_coords);
 
                         match res {
                             Ok(c) => new_cursor_position = c,
@@ -151,70 +151,47 @@ impl<'a> NormalCtrl<'a> {
                         }
 
                     } else if next_char == ' ' {
-                        // Need to do some fancy distance comparison to see if we hit char before
-                        // whitespace first or nonword char
-                        let res = self.text_cache.re_first_match_position(TextCache::NON_WHITESPACE, cursor_coords);
-                        
-                        match res {
-                            Ok(c) => new_cursor_position = c,
-                            _ => ()
+                        let dist_to_whitespace = 
+                            if let Ok(d) = self.text_cache.distance_to_pattern_from_cursor(TextCache::WHITESPACE_BOUNDARY, cursor_coords) {
+                                d 
+                            } else {
+                                0.0
+                            };
+
+                        let dist_to_nonword_char =
+                            if let Ok(d) = self.text_cache.distance_to_pattern_from_cursor(TextCache::NON_WORDCHAR_BOUNDARY, cursor_coords) {
+                                d
+                            } else {
+                                0.0
+                            };
+
+                        self.window.blurses.cursor_save_position();
+                        println!("");
+                        println!("ws: {} nwc: {}", dist_to_whitespace, dist_to_nonword_char);
+                        self.window.blurses.cursor_restore_position();
+
+                        let pattern = 
+                            if dist_to_whitespace > dist_to_nonword_char {
+                                TextCache::NON_WORDCHAR_BOUNDARY
+                            } else if dist_to_nonword_char > dist_to_whitespace {
+                                TextCache::WHITESPACE_BOUNDARY
+                            } else {
+                                ""
+                            };
+
+                        if pattern != "" {
+                            let res = self.text_cache.re_first_match_position(pattern, cursor_coords);
+                            match res {
+                                Ok(c) => new_cursor_position = c,
+                                _ => ()
+                            }
                         }
+
                     }
                 }
 
                 self.window.cursor_set_position(new_cursor_position)
 
-                // Word character = [a-zA-Z_]
-                // When current char is a word character and next char is also a word character,
-                // jump to the next word character immediately preceding a non-word character.
-                //if self.text_cache.is_word_char(&current_char) && self.text_cache.is_word_char(&next_char) {
-                    //let new_cursor_position = 
-                        //if let Ok(c) = self.text_cache.re_first_match_position(r"\w{1}\b", cursor_coords) {
-                            //c
-                        //} else {
-                            //self.text_cache.last_char_position() 
-                        //};
-
-                    //self.window.cursor_set_position(new_cursor_position)
-
-                //// When current char is whitespace or a non-word character,
-                //// go to the next char preceding a whitespace, or EOL.
-                //} else if self.text_cache.is_match(&current_char.to_string(), r"[^0-9A-Za-z_]{1}") {
-                    //let new_cursor_position = 
-                        //if let Ok(c) = self.text_cache.re_first_match_position(r"[^ ]{1}\s+", (cursor_col + 1, cursor_row)) {
-                            //c
-                        //} else {
-                            //self.text_cache.last_char_position() 
-                        //};
-
-                    //self.window.cursor_set_position(new_cursor_position)
-                
-                //// When next character is a non-word, non-whitespace character
-                //// jump to the next non-word, non-whitespace char preceding a whitespace or word
-                //// char.
-                //} else if self.text_cache.is_match(&next_char.to_string(), r"[^0-9A-Za-z_ ]{1}") {
-                    //let new_cursor_position = 
-                        //if let Ok(c) = self.text_cache.re_first_match_position(r"[^0-9A-Za-z_ ]{1}[0-9A-Za-z_ ]{1}", (cursor_col + 1, cursor_row)) {
-                            //c
-                        //} else {
-                            //self.text_cache.last_char_position() 
-                        //};
-
-                    //self.window.cursor_set_position(new_cursor_position)
-
-                //// When next character is whitespace or non-word character
-                //// jump to the next character immediately preceding a whitespace or EOL.
-                //} else if self.text_cache.is_match(&next_char.to_string(), r"[^0-9A-Za-z_]{1}") {
-                    //let new_cursor_position = 
-                        //if let Ok(c) = self.text_cache.re_first_match_position(r"\w{1}\s+", (cursor_col + 1, cursor_row)) {
-                            //c
-                        //} else {
-                            //self.text_cache.last_char_position() 
-                        //};
-
-                    //self.window.cursor_set_position(new_cursor_position)
-                    
-                //}
             },
 
             _ => ()
