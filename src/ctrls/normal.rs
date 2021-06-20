@@ -20,7 +20,7 @@ impl Ctrl for NormalCtrl<'_> {
 
     fn handle_regular_key(&mut self, key_press: &str) -> Response {
         match key_press {
-            "i" => Response::SwitchMode(Mode::Insert),
+            "i" | "I" | "a" | "A" | "o" | "O" => self.insert_mode(key_press),
              _ => self.handle_navigation(key_press),
         }
     }
@@ -33,6 +33,23 @@ impl Ctrl for NormalCtrl<'_> {
 impl<'a> NormalCtrl<'a> {
     pub fn new(window: &'a mut Window, text_cache: &'a mut TextCache) -> Self {
         Self { text_cache, window }
+    }
+
+    pub fn insert_mode(&mut self, key_press: &str) -> Response {
+        match key_press {
+            "a" => self.window.blurses.cursor_right(1),
+
+            "A" => {
+                let cursor_coords = self.window.get_cursor_position();
+                let line_len = self.text_cache.current_line(cursor_coords).len();
+
+                self.window.blurses.cursor_set_col(line_len + 1)
+            },
+
+            "i" | _ => ()
+        }
+
+        Response::SwitchMode(Mode::Insert)
     }
 
     pub fn handle_navigation(&mut self, key_press: &str) -> Response {
@@ -110,61 +127,69 @@ impl<'a> NormalCtrl<'a> {
             },
 
             "e" => {
-                // Todo: add logic to traverse all lines
-                // underscores.. lol
+                let (cursor_col, cursor_row) = self.window.get_cursor_position();
+                let cursor_coords = (cursor_col, cursor_row);
 
-                if current_line.len() == 0 || cursor_col == current_line.len() {
-                    return
-                }
+                if self.text_cache.end_of_text(cursor_coords) { return };
 
-                let mut last_alphanumeric_index = 0;
-                let current_char; 
-                let next_char;
+                let current_char = self.text_cache
+                    .compute_current_char(cursor_coords)
+                    .unwrap();
 
-                if let Ok(ch) = self.text_cache.compute_current_char(cursor_coords) {
-                    current_char = ch
-                } else {
-                    return
-                };
+                let next_char = self.text_cache
+                    .compute_next_char(cursor_coords)
+                    .unwrap();
 
-                if let Ok(ch) = self.text_cache.compute_next_char(cursor_coords) {
-                    next_char = ch
-                } else {
-                    return
-                };
+                let mut new_cursor_position = self.text_cache.last_char_position();
 
-                let start;
+                if self.text_cache.is_word_char(&current_char) {
 
-                // Order matters.
-                if current_char == ' ' {
-                    start = cursor_col
-                } else if next_char == ' ' {
-                    start = cursor_col + 1
-                } else if !next_char.is_alphanumeric() {
-                    self.window.blurses.cursor_right(1);
-                    return
-                } else if !current_char.is_alphanumeric() {
-                    start = cursor_col + 1
-                } else {
-                    start = cursor_col - 1
-                }
+                    if self.text_cache.is_word_char(&next_char) {
+                        let res = self.text_cache.re_first_match_position(TextCache::NON_WORDCHAR_BOUNDARY, 0, cursor_coords);
 
-                for i in start..current_line.len() {
-                    let ch = current_line.chars().nth(i).unwrap();
+                        match res {
+                            Ok(c) => new_cursor_position = c,
+                            _ => ()
+                        }
 
-                    if i == current_line.len() - 1 {
-                        last_alphanumeric_index = i;
-                        break;
+                    } else if next_char == ' ' {
+                        let dist_to_whitespace = 
+                            if let Ok(d) = self.text_cache.distance_to_pattern_from_cursor(TextCache::WHITESPACE, 2, cursor_coords) {
+                                d 
+                            } else {
+                                f64::INFINITY
+                            };
+
+                        let dist_to_nonword_char =
+                            if let Ok(d) = self.text_cache.distance_to_pattern_from_cursor(TextCache::NON_WORDCHAR_WS, 2, cursor_coords) {
+                                d
+                            } else {
+                                f64::INFINITY
+                            };
+
+                        let pattern = 
+                            if dist_to_whitespace > dist_to_nonword_char {
+                                TextCache::NON_WORDCHAR
+                            } else if dist_to_nonword_char > dist_to_whitespace {
+                                TextCache::WHITESPACE_BOUNDARY
+                            } else {
+                                ""
+                            };
+
+                        if pattern != "" {
+                            let res = self.text_cache.re_first_match_position(pattern, 2, cursor_coords);
+                            match res {
+                                Ok(c) => new_cursor_position = c,
+                                _ => ()
+                            }
+                        }
+
                     }
-
-                    if !ch.is_alphanumeric() {
-                        last_alphanumeric_index = i - 1;
-                        break;
-                    }
                 }
 
-                self.window.blurses.cursor_set_col(last_alphanumeric_index + 1)
-            }
+                self.window.cursor_set_position(new_cursor_position)
+
+            },
 
             _ => ()
         }

@@ -1,6 +1,8 @@
+mod tests;
 pub mod errors;
 
 use crate::cache::errors::Error;
+use regex::Regex;
 
 pub struct TextCache {
     text: Vec<String>,
@@ -18,8 +20,14 @@ impl Default for TextCache {
     }
 }
 
+// Methods that compute position of characters return cursor coordinates (1-based).
 impl TextCache {
+    pub fn new(text: Vec<String>, history: Vec<Vec<String>>) -> Self {
+        Self { text, history }        
+    }
+
     pub fn next_nth_occurrence_of_char(&self, ch: &char, n: usize, cursor_pos: (usize, usize)) -> Result<(usize, usize), Error> {
+        // Does not include current focused character.
         let (cursor_col, cursor_row) = cursor_pos;
         let mut char_index = cursor_col;
 
@@ -32,7 +40,7 @@ impl TextCache {
 
                 if m == *ch {
                     if occurrence == n  {
-                        return Ok((j, cursor_row))
+                        return Ok((j + 1, i + 1))
                     }
 
                     occurrence += 1
@@ -58,21 +66,23 @@ impl TextCache {
     }
 
     pub fn compute_next_char(&self, cursor_pos: (usize, usize)) -> Result<char, Error> {
+        // Does not include current focused character.
+
         let (cursor_col, cursor_row) = cursor_pos;
-        let mut line_number = cursor_row - 1;
-        let mut current_line = &self.text[line_number];
+        let current_line = self.current_line(cursor_pos);
 
-        if cursor_col == current_line.len() {
-            line_number += 1
-        }
+        if cursor_col < current_line.len() {
+            return Ok(current_line.chars().nth(cursor_col).unwrap())
 
-        if line_number > self.line_count() {
-            return Err(Error::CharNotFound)
-        }
+        } else if cursor_col == current_line.len() {
+            if cursor_row < self.line_count() {
+                let next_line = self.get_line(cursor_row + 1);
 
-        current_line = &self.text[line_number];
-
-        Ok(current_line.chars().nth(cursor_col).unwrap())
+                return Ok(next_line.chars().nth(0).unwrap())
+            }
+        } 
+            
+        return Err(Error::EndOfText)
     }
 
     pub fn current_line(&self, cursor_pos: (usize, usize)) -> &str {
@@ -110,5 +120,72 @@ impl TextCache {
         let (_, cursor_row) = cursor_pos;
 
         self.text.insert(cursor_row, txt.to_string())
+    }
+
+    pub fn is_word_char(&self, ch: &char) -> bool {
+        *ch == '_' || ch.is_alphanumeric()
+    }
+
+    pub fn last_char_position(&self) -> (usize, usize) {
+        let row = self.line_count();
+        let col = self.get_line(row).len();
+
+        (col, row)
+    }
+
+    pub fn end_of_text(&self, cursor_pos: (usize, usize)) -> bool {
+        cursor_pos == self.last_char_position()    
+    }
+
+    // Common regex patterns used in re_first_match_position.
+    pub const NON_WHITESPACE_BOUNDARY: &'static str = r"\w{1}[^ ]{1}";
+    pub const NON_WORDCHAR_BOUNDARY:   &'static str = r".{1}[^0-9A-Za-z_]{1}";
+    pub const WHITESPACE_BOUNDARY: &'static str = r".{1}\s{1}";
+    pub const NON_WORDCHAR: &'static str = r"[^0-9A-Za-z_]{1}";
+    pub const NON_WORDCHAR_WS: &'static str = r"[^0-9A-Za-z_ ]{1}";
+    pub const WHITESPACE: &'static str = r"\s{1}";
+    pub const WORDCHAR: &'static str = r"[0-9A-Za-z_]{1}";
+
+    pub fn re_first_match_position(&self, pattern: &str, offset: usize, cursor_pos: (usize, usize)) -> Result<(usize, usize), Error> {
+        let (cursor_col, cursor_row) = cursor_pos;
+        let mut line_num = cursor_row;
+        let line_count = self.line_count();
+
+        let re = Regex::new(pattern).unwrap();
+
+        let line = self.current_line(cursor_pos);
+        let mut current = &line[(cursor_col - 1)..line.len()];
+
+        loop {
+            let m = re.find_at(current, offset);
+            match m {
+                Some(t) => {
+                    let normalized_col = t.start() + &line[0..cursor_col].len();
+
+                    return Ok((normalized_col, line_num))
+                },
+                None => {
+                    if line_num + 1 > line_count {
+                        break
+                    }
+                    line_num += 1;
+                    current = self.get_line(line_num)
+                }
+            }
+        }
+
+        Err(Error::PatternNotFound)
+    }
+
+    pub fn is_match(&self, text: &str, pattern: &str) -> bool {
+        let re = Regex::new(pattern).unwrap();
+        re.is_match(text)
+    }
+
+    pub fn distance_to_pattern_from_cursor(&self, pattern: &str, offset: usize, cursor_pos: (usize, usize)) -> Result<f64, Error> {
+        let (x2, y2) = self.re_first_match_position(pattern, offset, cursor_pos)?;
+        let (x1, y1) = cursor_pos;
+
+        Ok((((x2 - x1).pow(2) + (y2 - y1).pow(2)) as f64).sqrt())
     }
 }
