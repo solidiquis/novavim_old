@@ -130,6 +130,8 @@ impl<'a> NormalCtrl<'a> {
                 let (cursor_col, cursor_row) = self.window.get_cursor_position();
                 let cursor_coords = (cursor_col, cursor_row);
 
+                if self.text_cache.end_of_text(cursor_coords) { return };
+
                 let current_char = self.text_cache
                     .compute_current_char(cursor_coords)
                     .unwrap();
@@ -143,7 +145,7 @@ impl<'a> NormalCtrl<'a> {
                 if self.text_cache.is_word_char(&current_char) {
 
                     if self.text_cache.is_word_char(&next_char) {
-                        let res = self.text_cache.re_first_match_position(TextCache::NON_WORDCHAR_BOUNDARY, cursor_coords);
+                        let res = self.text_cache.re_first_match_position(TextCache::NON_WORDCHAR_BOUNDARY, 0, cursor_coords);
 
                         match res {
                             Ok(c) => new_cursor_position = c,
@@ -152,27 +154,22 @@ impl<'a> NormalCtrl<'a> {
 
                     } else if next_char == ' ' {
                         let dist_to_whitespace = 
-                            if let Ok(d) = self.text_cache.distance_to_pattern_from_cursor(TextCache::WHITESPACE_BOUNDARY, cursor_coords) {
+                            if let Ok(d) = self.text_cache.distance_to_pattern_from_cursor(TextCache::WHITESPACE, 2, cursor_coords) {
                                 d 
                             } else {
-                                0.0
+                                f64::INFINITY
                             };
 
                         let dist_to_nonword_char =
-                            if let Ok(d) = self.text_cache.distance_to_pattern_from_cursor(TextCache::NON_WORDCHAR_BOUNDARY, cursor_coords) {
+                            if let Ok(d) = self.text_cache.distance_to_pattern_from_cursor(TextCache::NON_WORDCHAR_WS, 2, cursor_coords) {
                                 d
                             } else {
-                                0.0
+                                f64::INFINITY
                             };
-
-                        self.window.blurses.cursor_save_position();
-                        println!("");
-                        println!("ws: {} nwc: {}", dist_to_whitespace, dist_to_nonword_char);
-                        self.window.blurses.cursor_restore_position();
 
                         let pattern = 
                             if dist_to_whitespace > dist_to_nonword_char {
-                                TextCache::NON_WORDCHAR_BOUNDARY
+                                TextCache::NON_WORDCHAR
                             } else if dist_to_nonword_char > dist_to_whitespace {
                                 TextCache::WHITESPACE_BOUNDARY
                             } else {
@@ -180,7 +177,7 @@ impl<'a> NormalCtrl<'a> {
                             };
 
                         if pattern != "" {
-                            let res = self.text_cache.re_first_match_position(pattern, cursor_coords);
+                            let res = self.text_cache.re_first_match_position(pattern, 2, cursor_coords);
                             match res {
                                 Ok(c) => new_cursor_position = c,
                                 _ => ()

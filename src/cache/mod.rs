@@ -133,16 +133,20 @@ impl TextCache {
         (col, row)
     }
 
+    pub fn end_of_text(&self, cursor_pos: (usize, usize)) -> bool {
+        cursor_pos == self.last_char_position()    
+    }
+
     // Common regex patterns used in re_first_match_position.
     pub const NON_WHITESPACE_BOUNDARY: &'static str = r"\w{1}[^ ]{1}";
-    pub const NON_WORDCHAR_BOUNDARY:   &'static str = r"\w{1}[^0-9A-Za-z_]{1}";
-    pub const WHITESPACE_BOUNDARY: &'static str = r"\s{1}";
+    pub const NON_WORDCHAR_BOUNDARY:   &'static str = r".{1}[^0-9A-Za-z_]{1}";
+    pub const WHITESPACE_BOUNDARY: &'static str = r".{1}\s{1}";
     pub const NON_WORDCHAR: &'static str = r"[^0-9A-Za-z_]{1}";
+    pub const NON_WORDCHAR_WS: &'static str = r"[^0-9A-Za-z_ ]{1}";
     pub const WHITESPACE: &'static str = r"\s{1}";
     pub const WORDCHAR: &'static str = r"[0-9A-Za-z_]{1}";
 
-    pub fn re_first_match_position(&self, pattern: &str, cursor_pos: (usize, usize)) -> Result<(usize, usize), Error> {
-        // This includes the current focused character.
+    pub fn re_first_match_position(&self, pattern: &str, offset: usize, cursor_pos: (usize, usize)) -> Result<(usize, usize), Error> {
         let (cursor_col, cursor_row) = cursor_pos;
         let mut line_num = cursor_row;
         let line_count = self.line_count();
@@ -153,7 +157,7 @@ impl TextCache {
         let mut current = &line[(cursor_col - 1)..line.len()];
 
         loop {
-            let m = re.find(current);
+            let m = re.find_at(current, offset);
             match m {
                 Some(t) => {
                     let normalized_col = t.start() + &line[0..cursor_col].len();
@@ -173,23 +177,13 @@ impl TextCache {
         Err(Error::PatternNotFound)
     }
 
-    pub fn re_first_match_position_with_offset(&self, pattern: &str, cursor_pos: (usize, usize)) -> Result<(usize, usize), Error> {
-        let (cursor_col, cursor_row) = cursor_pos;
-        let current_line = self.current_line();
-        let current_line_slice = current_line[(cursor_col - 1)..current_line.len()];
-        let re = Regex::new(pattern).unwrap();
-        let m = re.find_at(current_line_slice, 1);
-
-        // bookmark
-    }
-
     pub fn is_match(&self, text: &str, pattern: &str) -> bool {
         let re = Regex::new(pattern).unwrap();
         re.is_match(text)
     }
 
-    pub fn distance_to_pattern_from_cursor(&self, pattern: &str, cursor_pos: (usize, usize)) -> Result<f64, Error> {
-        let (x2, y2) = self.re_first_match_position(pattern, cursor_pos)?;
+    pub fn distance_to_pattern_from_cursor(&self, pattern: &str, offset: usize, cursor_pos: (usize, usize)) -> Result<f64, Error> {
+        let (x2, y2) = self.re_first_match_position(pattern, offset, cursor_pos)?;
         let (x1, y1) = cursor_pos;
 
         Ok((((x2 - x1).pow(2) + (y2 - y1).pow(2)) as f64).sqrt())

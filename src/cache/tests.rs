@@ -75,12 +75,22 @@ fn test_re_first_match_position() {
     let cursor = blurses.get_cursor_position();
 
     let mut re = r"\w+;";
-    let mut pos = cache.re_first_match_position(re, cursor).unwrap();
+    let mut pos = cache.re_first_match_position(re, 0, cursor).unwrap();
     assert_eq!(pos, (31, 1));
 
     re = r"\w+,";
-    pos = cache.re_first_match_position(re, cursor).unwrap();
+    pos = cache.re_first_match_position(re, 0, cursor).unwrap();
     assert_eq!(pos, (1, 2));
+
+    re = r"I\s+";
+    pos = cache.re_first_match_position(re, 0, cursor).unwrap();
+    assert_eq!(pos, (1, 1));
+
+    let res = cache.re_first_match_position(re, 1, cursor);
+    match res {
+        Err(e) => assert_eq!(e, Error::PatternNotFound),
+        _ => (),
+    }
 }
 
 
@@ -119,12 +129,12 @@ fn test_distance_to_pattern_from_cursor() {
     let cache = init_cache();
     let mut blurses = init_blurses();
     let cursor = blurses.get_cursor_position();
-    let dist_a = cache.distance_to_pattern_from_cursor(r"dark", cursor).unwrap();
-    let dist_b = cache.distance_to_pattern_from_cursor(r"horror", cursor).unwrap();
+    let dist_a = cache.distance_to_pattern_from_cursor(r"dark", 0, cursor).unwrap();
+    let dist_b = cache.distance_to_pattern_from_cursor(r"horror", 0, cursor).unwrap();
 
     assert_eq!(dist_a < dist_b, true);
     
-    let dist_c = cache.distance_to_pattern_from_cursor(r"blessed_dude_bro", cursor);
+    let dist_c = cache.distance_to_pattern_from_cursor(r"blessed_dude_bro", 0, cursor);
     match dist_c {
         Err(e) => assert_eq!(e, Error::PatternNotFound),
         _ => ()
